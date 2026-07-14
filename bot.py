@@ -17,8 +17,38 @@ from handlers.chat import handle_message
 TOKEN = os.getenv("BOT_TOKEN")
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+    query = update.callback_query
+    await query.answer()
+
+    if query.data == "cardio":
+
+        keyboard = [
+            [InlineKeyboardButton(
+                "🫀 Chest Pain",
+                callback_data="chest_pain"
+            )]
+        ]
+
+        await query.edit_message_text(
+            "❤️ Cardiovascular Cases:",
+            reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+    elif query.data == "chest_pain":
+
+        await query.edit_message_text(
+            "🫀 Chest Pain Case\n\n"
+            "You are a medical student.\n"
+            "Take history from the patient."
+        )
+
+    else:
+
+        await query.edit_message_text(
+            f"Selected: {query.data}"
+        )
     keyboard = [
         [InlineKeyboardButton("❤️ Cardiovascular", callback_data="cardio")],
         [InlineKeyboardButton("🫁 Respiratory", callback_data="respiratory")],
