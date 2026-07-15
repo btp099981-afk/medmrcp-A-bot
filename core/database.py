@@ -1,7 +1,6 @@
 import sqlite3
 from datetime import datetime
 
-
 DATABASE_NAME = "medmrcp.db"
 
 
@@ -10,10 +9,8 @@ DATABASE_NAME = "medmrcp.db"
 # =========================
 
 def create_database():
-
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
-
 
     # جدول المستخدمين
     cursor.execute("""
@@ -26,7 +23,6 @@ def create_database():
     )
     """)
 
-
     # جدول الإعدادات
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS settings (
@@ -35,10 +31,8 @@ def create_database():
     )
     """)
 
-
     conn.commit()
     conn.close()
-
 
 
 # =========================
@@ -46,27 +40,22 @@ def create_database():
 # =========================
 
 def add_user(user_id, username, first_name):
-
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
-
 
     cursor.execute("""
     INSERT OR IGNORE INTO users
     (user_id, username, first_name, join_date)
     VALUES (?, ?, ?, ?)
-    """,
-    (
+    """, (
         user_id,
         username,
         first_name,
         datetime.now().strftime("%Y-%m-%d")
     ))
 
-
     conn.commit()
     conn.close()
-
 
 
 # =========================
@@ -74,10 +63,8 @@ def add_user(user_id, username, first_name):
 # =========================
 
 def get_user(user_id):
-
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
-
 
     cursor.execute(
         "SELECT * FROM users WHERE user_id=?",
@@ -91,24 +78,19 @@ def get_user(user_id):
     return user
 
 
-
 # =========================
 # تحديث خطة المستخدم
 # =========================
 
 def update_plan(user_id, plan):
-
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()
-
 
     cursor.execute("""
     UPDATE users
     SET plan=?
     WHERE user_id=?
-    """,
-    (plan, user_id))
-
+    """, (plan, user_id))
 
     conn.commit()
     conn.close()
