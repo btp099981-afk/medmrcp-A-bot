@@ -1,0 +1,55 @@
+📝 History Taking - MRCP Clinical Approach
+
+1. Patient Introduction:
+- Introduce yourself
+- Confirm patient's name and age
+- Explain the purpose of the consultation
+- Obtain consent
+
+2. Presenting Complaint (PC):
+- Ask the main reason for attending
+- Record symptoms with duration
+
+3. History of Presenting Complaint:
+
+Use SOCRATES for pain:
+
+S - Site
+O - Onset
+C - Character
+R - Radiation
+A - Associated symptoms
+T - Timing
+E - Exacerbating factors
+S - Severity
+
+4. Past Medical History:
+- Previous illnesses
+- Hospital admissions
+- Operations
+- Chronic diseases
+
+5. Drug History:
+- Current medications
+- Allergies
+- Recent treatments
+
+6. Family History:
+- Similar illnesses
+- Genetic diseases
+
+7. Social History:
+- Smoking
+- Alcohol
+- Occupation
+- Living situation
+
+8. ICE:
+Ideas:
+What do you think is happening?
+
+Concerns:
+Is there anything worrying you?
+
+Expectations:
+What were you hoping we could do today?
