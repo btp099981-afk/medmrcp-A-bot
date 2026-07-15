@@ -16,6 +16,15 @@ from core.database import (
     get_user
 )
 
+from handlers.menu import (
+    get_main_menu,
+    get_menu_handler
+)
+
+from handlers.chat import (
+    handle_message
+)
+
 
 # تحميل المتغيرات
 load_dotenv()
@@ -31,7 +40,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     user = update.effective_user
 
-    # تسجيل المستخدم في قاعدة البيانات
+    # تسجيل المستخدم
     add_user(
         user.id,
         user.username,
@@ -51,28 +60,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🩺 MedMRCP AI\n"
         "مساعدك للتحضير لـ MRCP و UKMLA\n\n"
         f"📌 خطتك الحالية: {plan}\n\n"
-        "المتاح حاليًا:\n"
-        "✅ التسجيل مجاني\n"
-        "✅ النظام الأساسي جاهز\n\n"
-        "قريبًا:\n"
-        "📚 الحالات السريرية\n"
-        "❓ MCQs\n"
-        "📝 History Taking\n"
-        "⭐ Premium Plan"
-    )
-
-
-# =========================
-# استقبال الرسائل
-# =========================
-
-async def handle_message(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    await update.message.reply_text(
-        "🩺 سيتم إضافة المحتوى الطبي والذكاء الاصطناعي قريبًا."
+        "اختر القسم الذي تريد دراسته:",
+        reply_markup=get_main_menu()
     )
 
 
@@ -87,18 +76,26 @@ def main():
         return
 
 
-    # إنشاء قاعدة البيانات عند التشغيل
+    # إنشاء قاعدة البيانات
     create_database()
 
 
     app = Application.builder().token(BOT_TOKEN).build()
 
 
+    # أمر البداية
     app.add_handler(
         CommandHandler("start", start)
     )
 
 
+    # أزرار القائمة
+    app.add_handler(
+        get_menu_handler()
+    )
+
+
+    # الرسائل النصية
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
@@ -111,7 +108,6 @@ def main():
 
 
     app.run_polling()
-
 
 
 if __name__ == "__main__":
