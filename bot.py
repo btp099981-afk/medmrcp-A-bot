@@ -10,28 +10,55 @@ from telegram.ext import (
     filters
 )
 
-# تحميل إعدادات البيئة
+from core.database import (
+    create_database,
+    add_user,
+    get_user
+)
+
+
+# تحميل المتغيرات
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
 # =========================
-# أمر البداية /start
+# أمر البداية
 # =========================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
     user = update.effective_user
 
+    # تسجيل المستخدم في قاعدة البيانات
+    add_user(
+        user.id,
+        user.username,
+        user.first_name
+    )
+
+    user_data = get_user(user.id)
+
+    plan = "Free"
+
+    if user_data:
+        plan = user_data[3].capitalize()
+
+
     await update.message.reply_text(
-        f"👋 أهلاً بك {user.first_name} في MedMRCP AI\n\n"
-        "🩺 مساعدك الذكي للتحضير لـ MRCP و UKMLA.\n\n"
-        "المميزات القادمة:\n"
-        "✅ حالات سريرية\n"
-        "✅ MCQs\n"
-        "✅ History Taking\n"
-        "✅ تقييم مستوى الطالب\n\n"
-        "سيتم تجهيز النظام الكامل قريباً."
+        f"👋 أهلاً بك {user.first_name}\n\n"
+        "🩺 MedMRCP AI\n"
+        "مساعدك للتحضير لـ MRCP و UKMLA\n\n"
+        f"📌 خطتك الحالية: {plan}\n\n"
+        "المتاح حاليًا:\n"
+        "✅ التسجيل مجاني\n"
+        "✅ النظام الأساسي جاهز\n\n"
+        "قريبًا:\n"
+        "📚 الحالات السريرية\n"
+        "❓ MCQs\n"
+        "📝 History Taking\n"
+        "⭐ Premium Plan"
     )
 
 
@@ -44,12 +71,8 @@ async def handle_message(
     context: ContextTypes.DEFAULT_TYPE
 ):
 
-    text = update.message.text
-
     await update.message.reply_text(
-        "تم استلام رسالتك ✅\n\n"
-        f"رسالتك: {text}\n\n"
-        "سيتم ربط الذكاء الاصطناعي والمحتوى الطبي في المراحل القادمة."
+        "🩺 سيتم إضافة المحتوى الطبي والذكاء الاصطناعي قريبًا."
     )
 
 
@@ -60,19 +83,22 @@ async def handle_message(
 def main():
 
     if not BOT_TOKEN:
-        print("ERROR: BOT_TOKEN غير موجود")
+        print("BOT_TOKEN غير موجود")
         return
+
+
+    # إنشاء قاعدة البيانات عند التشغيل
+    create_database()
+
 
     app = Application.builder().token(BOT_TOKEN).build()
 
 
-    # أمر البداية
     app.add_handler(
         CommandHandler("start", start)
     )
 
 
-    # الرسائل النصية
     app.add_handler(
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
@@ -85,6 +111,7 @@ def main():
 
 
     app.run_polling()
+
 
 
 if __name__ == "__main__":
