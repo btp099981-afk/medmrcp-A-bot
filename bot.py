@@ -1,183 +1,90 @@
 import os
+from dotenv import load_dotenv
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update
 from telegram.ext import (
     Application,
     CommandHandler,
-    CallbackQueryHandler,
     MessageHandler,
     ContextTypes,
     filters
 )
 
+# تحميل إعدادات البيئة
+load_dotenv()
 
-TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
-# ==========================
-# Start Menu
-# ==========================
+# =========================
+# أمر البداية /start
+# =========================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    keyboard = [
-        [InlineKeyboardButton("❤️ Cardiovascular", callback_data="cardio")],
-        [InlineKeyboardButton("🫁 Respiratory", callback_data="respiratory")],
-        [InlineKeyboardButton("🧠 Neurology", callback_data="neurology")],
-        [InlineKeyboardButton("🍽 Gastrointestinal", callback_data="gi")],
-        [InlineKeyboardButton("🫘 Renal", callback_data="renal")]
-    ]
+    user = update.effective_user
 
     await update.message.reply_text(
-        "Welcome to MedMRCP AI 🩺\n\nChoose a system:",
-        reply_markup=InlineKeyboardMarkup(keyboard)
+        f"👋 أهلاً بك {user.first_name} في MedMRCP AI\n\n"
+        "🩺 مساعدك الذكي للتحضير لـ MRCP و UKMLA.\n\n"
+        "المميزات القادمة:\n"
+        "✅ حالات سريرية\n"
+        "✅ MCQs\n"
+        "✅ History Taking\n"
+        "✅ تقييم مستوى الطالب\n\n"
+        "سيتم تجهيز النظام الكامل قريباً."
     )
 
 
-# ==========================
-# Buttons
-# ==========================
+# =========================
+# استقبال الرسائل
+# =========================
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_message(
+    update: Update,
+    context: ContextTypes.DEFAULT_TYPE
+):
 
-    query = update.callback_query
-    await query.answer()
+    text = update.message.text
 
-
-    # Cardiovascular
-    if query.data == "cardio":
-
-        keyboard = [
-            [
-                InlineKeyboardButton(
-                    "🫀 Chest Pain",
-                    callback_data="chest_pain"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "💓 Palpitations",
-                    callback_data="palpitations"
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    "😵 Syncope",
-                    callback_data="syncope"
-                )
-            ]
-        ]
-
-        await query.edit_message_text(
-            "❤️ Cardiovascular Cases:",
-            reply_markup=InlineKeyboardMarkup(keyboard)
-        )
+    await update.message.reply_text(
+        "تم استلام رسالتك ✅\n\n"
+        f"رسالتك: {text}\n\n"
+        "سيتم ربط الذكاء الاصطناعي والمحتوى الطبي في المراحل القادمة."
+    )
 
 
-    # Chest Pain Case
-    elif query.data == "chest_pain":
-
-        context.user_data["case"] = "chest_pain"
-
-        await query.edit_message_text(
-            "🫀 Chest Pain Case\n\n"
-            "Patient: Ahmed\n"
-            "Age: 55 years old\n"
-            "Gender: Male\n\n"
-            "Chief complaint:\n"
-            "Chest pain\n\n"
-            "Start taking history."
-        )
-
-
-    # Other cases (temporary)
-    elif query.data in ["palpitations", "syncope"]:
-
-        await query.edit_message_text(
-            "This case will be added soon."
-        )
-
-
-    else:
-
-        await query.edit_message_text(
-            f"Selected: {query.data}"
-        )
-
-
-
-# ==========================
-# Patient Answers
-# ==========================
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    text = update.message.text.lower()
-
-
-    if context.user_data.get("case") == "chest_pain":
-
-        if "name" in text:
-
-            await update.message.reply_text(
-                "My name is Ahmed."
-            )
-
-        elif "age" in text or "old" in text:
-
-            await update.message.reply_text(
-                "I am 55 years old."
-            )
-
-        elif "start" in text or "when" in text:
-
-            await update.message.reply_text(
-                "It started 2 hours ago."
-            )
-
-        else:
-
-            await update.message.reply_text(
-                "I am the patient. Please continue your history taking."
-            )
-
-    else:
-
-        await update.message.reply_text(
-            "Choose a clinical case first."
-        )
-
-
-
-# ==========================
-# Run Bot
-# ==========================
+# =========================
+# تشغيل البوت
+# =========================
 
 def main():
 
-    app = Application.builder().token(TOKEN).build()
+    if not BOT_TOKEN:
+        print("ERROR: BOT_TOKEN غير موجود")
+        return
+
+    app = Application.builder().token(BOT_TOKEN).build()
 
 
+    # أمر البداية
     app.add_handler(
         CommandHandler("start", start)
     )
 
 
+    # الرسائل النصية
     app.add_handler(
-        CallbackQueryHandler(button_handler)
+        MessageHandler(
+            filters.TEXT & ~filters.COMMAND,
+            handle_message
+        )
     )
 
 
-    app.add_handler(
-        MessageHandler(filters.TEXT, handle_message)
-    )
-
-
-    print("Bot is running...")
+    print("MedMRCP AI Bot is running...")
 
 
     app.run_polling()
-
 
 
 if __name__ == "__main__":
