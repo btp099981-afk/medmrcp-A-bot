@@ -16,7 +16,21 @@ from handlers.chat import handle_message
 
 TOKEN = os.getenv("BOT_TOKEN")
 
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
+    keyboard = [
+        [InlineKeyboardButton("❤️ Cardiovascular", callback_data="cardio")],
+        [InlineKeyboardButton("🫁 Respiratory", callback_data="respiratory")],
+        [InlineKeyboardButton("🧠 Neurology", callback_data="neurology")],
+        [InlineKeyboardButton("🍽 Gastrointestinal", callback_data="gi")],
+        [InlineKeyboardButton("🫘 Renal", callback_data="renal")],
+    ]
+
+    await update.message.reply_text(
+        "Welcome to MedMRCP AI 🩺\nChoose a system:",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
