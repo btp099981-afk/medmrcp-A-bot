@@ -39,15 +39,34 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if query.data == "cardio":
 
         keyboard = [
-            [InlineKeyboardButton(
-                "🫀 Chest Pain",
-                callback_data="chest_pain"
-            )]
+            [
+                InlineKeyboardButton(
+                    "🫀 Chest Pain",
+                    callback_data="chest_pain"
+                )
+            ]
         ]
 
         await query.edit_message_text(
             "❤️ Cardiovascular Cases:",
             reply_markup=InlineKeyboardMarkup(keyboard)
+        )
+
+    elif query.data == "chest_pain":
+
+        await query.edit_message_text(
+            "🫀 Chest Pain Case\n\n"
+            "You are a medical student in the clinic.\n\n"
+            "Patient: Ahmed\n"
+            "Age: 55 years old\n"
+            "Chief complaint: Chest pain\n\n"
+            "Start taking history."
+        )
+
+    else:
+
+        await query.edit_message_text(
+            f"Selected: {query.data}"
         )
 
     elif query.data ==
