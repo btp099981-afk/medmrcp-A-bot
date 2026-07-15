@@ -50,7 +50,8 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=InlineKeyboardMarkup(keyboard)
         )
 
-    elif query.data == "chest_pain":
+    elif query.data ==
+    "chest_pain":
 
     await query.edit_message_text(
         "🫀 Chest Pain Case\n\n"
