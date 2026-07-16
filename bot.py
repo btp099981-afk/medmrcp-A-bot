@@ -21,8 +21,8 @@ from core.database import (
 
 
 from handlers.menu import (
-    get_menu_handler,
-    get_main_menu
+    get_main_menu,
+    get_menu_handler
 )
 
 
@@ -34,7 +34,10 @@ from handlers.chat import (
 from handlers.admin import (
     get_admin_handler,
     get_payment_account_handler,
-    save_payment_account
+    save_payment_account,
+    get_payment_requests_handler,
+    get_approve_handler,
+    get_reject_handler
 )
 
 
@@ -64,7 +67,7 @@ BOT_TOKEN = os.getenv(
 
 
 # =========================
-# البداية
+# أمر البداية
 # =========================
 
 async def start(
@@ -100,7 +103,7 @@ async def start(
 
         f"👋 أهلاً بك {user.first_name}\n\n"
 
-        "🩺 MedMRCP AI\n\n"
+        "🩺 MedMRCP AI\n"
 
         "MRCP & UKMLA Medical Assistant\n\n"
 
@@ -156,7 +159,7 @@ def main():
 
 
 
-    # Admin
+    # Admin panel
 
     app.add_handler(
         get_admin_handler()
@@ -168,8 +171,23 @@ def main():
     )
 
 
+    app.add_handler(
+        get_payment_requests_handler()
+    )
 
-    # استقبال حساب الدفع من المدير
+
+    app.add_handler(
+        get_approve_handler()
+    )
+
+
+    app.add_handler(
+        get_reject_handler()
+    )
+
+
+
+    # حفظ حساب الدفع
 
     app.add_handler(
 
@@ -178,6 +196,27 @@ def main():
             filters.TEXT & ~filters.COMMAND,
 
             save_payment_account
+
+        )
+
+    )
+
+
+
+    # Premium
+
+    app.add_handler(
+        get_subscription_handler()
+    )
+
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.TEXT & ~filters.COMMAND,
+
+            save_payment_proof
 
         )
 
@@ -225,30 +264,6 @@ def main():
 
 
 
-    # Premium
-
-    app.add_handler(
-        get_subscription_handler()
-    )
-
-
-
-    # Payment proof
-
-    app.add_handler(
-
-        MessageHandler(
-
-            filters.TEXT & ~filters.COMMAND,
-
-            save_payment_proof
-
-        )
-
-    )
-
-
-
     # Chat
 
     app.add_handler(
@@ -268,7 +283,6 @@ def main():
     print(
         "MedMRCP AI Bot is running..."
     )
-
 
 
     app.run_polling()
