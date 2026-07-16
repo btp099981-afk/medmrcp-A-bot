@@ -15,6 +15,7 @@ def create_database():
     cursor = conn.cursor()
 
 
+    # جدول المستخدمين
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
 
@@ -35,11 +36,33 @@ def create_database():
     """)
 
 
+    # جدول الإعدادات
+    # مثل رقم الحساب الذي يمكن تغييره لاحقاً
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS settings (
 
         key TEXT PRIMARY KEY,
         value TEXT
+
+    )
+    """)
+
+
+    # جدول طلبات الدفع
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS payments (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        user_id INTEGER,
+
+        username TEXT,
+
+        photo_id TEXT,
+
+        status TEXT DEFAULT 'pending',
+
+        created_at TEXT
 
     )
     """)
@@ -111,9 +134,7 @@ def get_user(user_id):
 
     user = cursor.fetchone()
 
-
     conn.close()
-
 
     return user
 
@@ -183,6 +204,45 @@ def activate_subscription(
         start_date,
         end_date,
         user_id
+    ))
+
+
+    conn.commit()
+    conn.close()
+
+
+
+# =========================
+# إضافة طلب دفع
+# =========================
+
+def add_payment(
+    user_id,
+    username,
+    photo_id
+):
+
+    conn = sqlite3.connect(DATABASE_NAME)
+    cursor = conn.cursor()
+
+
+    cursor.execute("""
+    INSERT INTO payments
+    (
+        user_id,
+        username,
+        photo_id,
+        created_at
+    )
+
+    VALUES (?, ?, ?, ?)
+
+    """,
+    (
+        user_id,
+        username,
+        photo_id,
+        datetime.now().strftime("%Y-%m-%d %H:%M")
     ))
 
 
