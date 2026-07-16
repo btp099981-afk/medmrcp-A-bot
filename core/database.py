@@ -513,3 +513,40 @@ def get_pending_payments():
 
 
     return data
+# =========================
+# تحديث حالة الدفع
+# =========================
+
+def update_payment_status(
+    request_id,
+    status
+):
+
+    conn = sqlite3.connect(
+        DATABASE_NAME
+    )
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        UPDATE payment_requests
+
+        SET status=?
+
+        WHERE id=?
+
+        """,
+
+        (
+            status,
+            request_id
+        )
+
+    )
+
+
+    conn.commit()
+
+    conn.close()
