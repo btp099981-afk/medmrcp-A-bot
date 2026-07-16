@@ -34,7 +34,10 @@ from handlers.chat import (
 from handlers.admin import (
     get_admin_handler,
     get_payment_account_handler,
-    save_payment_account
+    get_discount_handler,
+    get_discount_select_handler,
+    save_payment_account,
+    save_discount
 )
 
 
@@ -115,7 +118,9 @@ def main():
 
     if not BOT_TOKEN:
 
-        print("BOT_TOKEN غير موجود")
+        print(
+            "BOT_TOKEN غير موجود"
+        )
 
         return
 
@@ -131,16 +136,20 @@ def main():
 
 
 
+    # start
+
     app.add_handler(
+
         CommandHandler(
             "start",
             start
         )
+
     )
 
 
 
-    # Admin
+    # Admin Panel
 
     app.add_handler(
         get_admin_handler()
@@ -152,8 +161,18 @@ def main():
     )
 
 
+    app.add_handler(
+        get_discount_handler()
+    )
 
-    # استقبال رقم الحساب من المدير
+
+    app.add_handler(
+        get_discount_select_handler()
+    )
+
+
+
+    # استقبال رقم الحساب
 
     app.add_handler(
 
@@ -162,6 +181,22 @@ def main():
             filters.TEXT & ~filters.COMMAND,
 
             save_payment_account
+
+        )
+
+    )
+
+
+
+    # استقبال رقم الهاتف للخصم
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.TEXT & ~filters.COMMAND,
+
+            save_discount
 
         )
 
@@ -187,7 +222,7 @@ def main():
 
 
 
-    # حفظ رقم الهاتف
+    # حفظ هاتف المستخدم
 
     app.add_handler(
 
@@ -203,7 +238,7 @@ def main():
 
 
 
-    # القائمة
+    # Menu
 
     app.add_handler(
         get_menu_handler()
@@ -211,7 +246,7 @@ def main():
 
 
 
-    # الرسائل العادية
+    # Chat
 
     app.add_handler(
 
