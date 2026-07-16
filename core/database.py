@@ -440,3 +440,45 @@ def get_setting(key):
 
 
     return None
+# =========================
+# إنشاء طلب دفع
+# =========================
+
+def create_payment_request(
+    user_id,
+    proof
+):
+
+    conn = sqlite3.connect(
+        DATABASE_NAME
+    )
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT INTO payment_requests
+        (
+        user_id,
+        proof,
+        date
+        )
+
+        VALUES (?, ?, ?)
+        """,
+
+        (
+            user_id,
+            proof,
+            datetime.now().strftime(
+                "%Y-%m-%d"
+            )
+        )
+
+    )
+
+
+    conn.commit()
+
+    conn.close()
