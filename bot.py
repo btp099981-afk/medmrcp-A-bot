@@ -46,7 +46,7 @@ from handlers.profile import (
 
 
 # =========================
-# تحميل المتغيرات
+# Load environment
 # =========================
 
 load_dotenv()
@@ -58,7 +58,7 @@ BOT_TOKEN = os.getenv(
 
 
 # =========================
-# أمر البداية
+# Start command
 # =========================
 
 async def start(
@@ -84,19 +84,21 @@ async def start(
     plan = "Free"
 
 
-    if user_data and user_data[4]:
+    if user_data:
 
-        plan = user_data[4].capitalize()
+        if len(user_data) > 4 and user_data[4]:
+
+            plan = user_data[4].capitalize()
 
 
 
     await update.message.reply_text(
 
-        f"👋 أهلاً بك {user.first_name}\n\n"
+        f"👋 Welcome {user.first_name}\n\n"
 
         "🩺 DrBillAcademy\n\n"
 
-        f"📌 Your plan: {plan}\n\n"
+        f"📌 Plan: {plan}\n\n"
 
         "Choose a section:",
 
@@ -107,7 +109,7 @@ async def start(
 
 
 # =========================
-# تشغيل البوت
+# Main
 # =========================
 
 def main():
@@ -116,7 +118,7 @@ def main():
     if not BOT_TOKEN:
 
         print(
-            "BOT_TOKEN غير موجود"
+            "BOT_TOKEN missing"
         )
 
         return
@@ -133,13 +135,13 @@ def main():
 
 
 
-    app.add_handler(
+    # Start
 
+    app.add_handler(
         CommandHandler(
             "start",
             start
         )
-
     )
 
 
@@ -157,7 +159,7 @@ def main():
 
 
 
-    # استقبال رقم الحساب من المدير
+    # Payment account text
 
     app.add_handler(
 
@@ -173,25 +175,7 @@ def main():
 
 
 
-    # طلب رقم الهاتف
-
-    app.add_handler(
-
-        MessageHandler(
-
-            filters.Regex(
-                "^📱 Share My Phone Number$"
-            ),
-
-            request_phone
-
-        )
-
-    )
-
-
-
-    # حفظ رقم الهاتف
+    # Phone
 
     app.add_handler(
 
@@ -207,7 +191,7 @@ def main():
 
 
 
-    # القائمة
+    # Menu
 
     app.add_handler(
         get_menu_handler()
@@ -215,7 +199,7 @@ def main():
 
 
 
-    # الرسائل العادية
+    # Normal chat
 
     app.add_handler(
 
@@ -234,7 +218,6 @@ def main():
     print(
         "DrBillAcademy Bot is running..."
     )
-
 
 
     app.run_polling()
