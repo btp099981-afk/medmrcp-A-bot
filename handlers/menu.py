@@ -3,7 +3,7 @@ import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
-from core.database import get_user
+from core.database import get_user, get_setting
 from config import ADMIN_ID
 
 
@@ -58,6 +58,13 @@ def get_main_menu(user_id=None):
 
         [
             InlineKeyboardButton(
+                "⭐ Premium",
+                callback_data="premium"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
                 "👤 My Account",
                 callback_data="account"
             )
@@ -65,8 +72,6 @@ def get_main_menu(user_id=None):
 
     ]
 
-
-    # يظهر للمدير فقط
 
     if user_id == ADMIN_ID:
 
@@ -117,7 +122,7 @@ def load_content(file_name):
 
 
 # =========================
-# معلومات الحساب
+# الحساب
 # =========================
 
 def account_info(user_id):
@@ -132,23 +137,18 @@ def account_info(user_id):
         return "User not found."
 
 
-
     plan = "Free"
-
 
     if user[4]:
 
         plan = user[4].capitalize()
 
 
-
     phone = "Not added"
-
 
     if user[3]:
 
         phone = user[3]
-
 
 
     return (
@@ -162,6 +162,38 @@ def account_info(user_id):
         f"Plan: {plan}\n"
 
         f"Join date: {user[5]}"
+
+    )
+
+
+
+# =========================
+# Premium
+# =========================
+
+def premium_info():
+
+    price = get_setting(
+        "premium_price"
+    )
+
+
+    payment = get_setting(
+        "payment_account"
+    )
+
+
+    return (
+
+        "⭐ Premium Plan\n\n"
+
+        f"💰 Price: {price}\n\n"
+
+        "💳 Payment Account:\n"
+
+        f"{payment}\n\n"
+
+        "Send payment proof to activate Premium."
 
     )
 
@@ -207,45 +239,4 @@ async def menu_callback(update, context):
         )
 
 
-    elif section == "account":
-
-        text = account_info(
-            query.from_user.id
-        )
-
-
-    elif section == "mcq":
-
-        text = (
-            "📝 MCQ Practice\n\n"
-            "Coming soon."
-        )
-
-
-    else:
-
-        text = "Choose a section."
-
-
-
-    await query.edit_message_text(
-
-        text=text,
-
-        reply_markup=get_main_menu(
-            query.from_user.id
-        )
-
-    )
-
-
-
-# =========================
-# ربط القائمة
-# =========================
-
-def get_menu_handler():
-
-    return CallbackQueryHandler(
-        menu_callback
-    )
+   
