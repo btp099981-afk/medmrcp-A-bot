@@ -1,5 +1,5 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackQueryHandler, MessageHandler, filters
+from telegram.ext import CallbackQueryHandler
 
 from core.database import (
     get_setting,
@@ -61,12 +61,18 @@ async def premium_page(update, context):
 
     price = get_setting(
         "premium_price"
-    )
+    ) or "Not set"
 
 
-    payment = get_setting(
+    bank = get_setting(
         "payment_account"
-    )
+    ) or "Not set"
+
+
+    whop = get_setting(
+        "whop_link"
+    ) or "Not set"
+
 
 
     await query.edit_message_text(
@@ -75,7 +81,13 @@ async def premium_page(update, context):
 
         f"💰 Price: {price}\n\n"
 
-        f"💳 Payment Account:\n{payment}\n\n"
+        "🏦 Bank Transfer:\n"
+
+        f"{bank}\n\n"
+
+        "🪙 USDT Payment:\n"
+
+        f"{whop}\n\n"
 
         "Choose an option:",
 
@@ -98,7 +110,10 @@ async def subscribe(update, context):
 
     await query.edit_message_text(
 
-        "💳 Complete payment first.\n\n"
+        "⭐ Premium Subscription\n\n"
+
+        "Complete payment using one of the methods above.\n\n"
+
         "Then send your payment proof."
 
     )
@@ -123,7 +138,8 @@ async def payment_proof(update, context):
 
     await query.edit_message_text(
 
-        "📤 Please send your payment proof now."
+        "📤 Send your payment proof now.\n\n"
+        "You can send a screenshot or payment details."
 
     )
 
@@ -165,20 +181,18 @@ async def save_payment_proof(update, context):
 
     await update.message.reply_text(
 
-        "✅ Payment proof received.\n"
+        "✅ Payment proof received.\n\n"
         "Waiting for admin approval."
 
     )
 
 
 
-    # إرسال إشعار للمدير
-
     await context.bot.send_message(
 
         ADMIN_ID,
 
-        "🔔 New Premium Payment Request\n\n"
+        "🔔 New Premium Request\n\n"
 
         f"Name: {user.first_name}\n"
 
@@ -186,14 +200,14 @@ async def save_payment_proof(update, context):
 
         f"ID: {user.id}\n\n"
 
-        "Please review the payment."
+        "Check payment request."
 
     )
 
 
 
 # =========================
-# ربط الأزرار
+# ربط زر Premium
 # =========================
 
 def get_subscription_handler():
