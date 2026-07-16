@@ -46,6 +46,11 @@ from handlers.profile import (
 )
 
 
+from handlers.subscription import (
+    get_subscription_handler
+)
+
+
 
 # =========================
 # تحميل المتغيرات
@@ -98,6 +103,8 @@ async def start(
 
         "🩺 MedMRCP AI\n\n"
 
+        "مساعدك للتحضير لـ MRCP و UKMLA\n\n"
+
         f"📌 Your plan: {plan}\n\n"
 
         "Choose a section:",
@@ -111,10 +118,11 @@ async def start(
 
 
 # =========================
-# التشغيل
+# تشغيل البوت
 # =========================
 
 def main():
+
 
     if not BOT_TOKEN:
 
@@ -139,15 +147,17 @@ def main():
     # Start
 
     app.add_handler(
+
         CommandHandler(
             "start",
             start
         )
+
     )
 
 
 
-    # Admin buttons
+    # Admin
 
     app.add_handler(
         get_admin_handler()
@@ -165,7 +175,7 @@ def main():
 
 
 
-    # Admin text input
+    # Admin text inputs
 
     app.add_handler(
 
@@ -229,6 +239,14 @@ def main():
 
     app.add_handler(
         get_menu_handler()
+    )
+
+
+
+    # Subscription
+
+    app.add_handler(
+        get_subscription_handler()
     )
 
 
