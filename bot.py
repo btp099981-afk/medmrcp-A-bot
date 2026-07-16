@@ -89,7 +89,9 @@ async def start(
 
         "اختر القسم الذي تريد دراسته:",
 
-        reply_markup=get_main_menu()
+        reply_markup=get_main_menu(
+            user.id
+        )
 
     )
 
