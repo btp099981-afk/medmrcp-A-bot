@@ -34,10 +34,12 @@ from handlers.chat import (
 from handlers.admin import (
     get_admin_handler,
     get_payment_account_handler,
-    save_payment_account,
     get_payment_requests_handler,
+    get_price_handler,
+    get_whop_handler,
     get_approve_handler,
-    get_reject_handler
+    get_reject_handler,
+    save_admin_setting
 )
 
 
@@ -159,7 +161,9 @@ def main():
 
 
 
-    # Admin panel
+    # =====================
+    # Admin
+    # =====================
 
     app.add_handler(
         get_admin_handler()
@@ -177,6 +181,16 @@ def main():
 
 
     app.add_handler(
+        get_price_handler()
+    )
+
+
+    app.add_handler(
+        get_whop_handler()
+    )
+
+
+    app.add_handler(
         get_approve_handler()
     )
 
@@ -187,7 +201,7 @@ def main():
 
 
 
-    # حفظ حساب الدفع
+    # حفظ إعدادات الإدارة
 
     app.add_handler(
 
@@ -195,7 +209,7 @@ def main():
 
             filters.TEXT & ~filters.COMMAND,
 
-            save_payment_account
+            save_admin_setting
 
         )
 
@@ -203,10 +217,14 @@ def main():
 
 
 
+    # =====================
     # Premium
+    # =====================
 
     app.add_handler(
+
         get_subscription_handler()
+
     )
 
 
@@ -224,7 +242,9 @@ def main():
 
 
 
+    # =====================
     # Phone
+    # =====================
 
     app.add_handler(
 
@@ -256,7 +276,9 @@ def main():
 
 
 
+    # =====================
     # Menu
+    # =====================
 
     app.add_handler(
         get_menu_handler()
@@ -264,7 +286,9 @@ def main():
 
 
 
+    # =====================
     # Chat
+    # =====================
 
     app.add_handler(
 
@@ -283,6 +307,7 @@ def main():
     print(
         "MedMRCP AI Bot is running..."
     )
+
 
 
     app.run_polling()
