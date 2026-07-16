@@ -1,11 +1,9 @@
 import os
-import sqlite3
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
 from core.database import get_user
-from config import ADMIN_ID
 
 
 
@@ -13,7 +11,7 @@ from config import ADMIN_ID
 # القائمة الرئيسية
 # =========================
 
-def get_main_menu(user_id=None):
+def get_main_menu():
 
     keyboard = [
 
@@ -64,27 +62,7 @@ def get_main_menu(user_id=None):
             )
         ],
 
-        [
-            InlineKeyboardButton(
-                "💎 Premium",
-                callback_data="premium"
-            )
-        ]
-
     ]
-
-
-    if user_id == ADMIN_ID:
-
-        keyboard.append(
-            [
-                InlineKeyboardButton(
-                    "⚙️ Admin Panel",
-                    callback_data="admin"
-                )
-            ]
-        )
-
 
     return InlineKeyboardMarkup(
         keyboard
@@ -121,47 +99,34 @@ def load_content(file_name):
 
 
 # =========================
-# قراءة الإعدادات
-# =========================
-
-def get_setting(key):
-
-    conn = sqlite3.connect(
-        "medmrcp.db"
-    )
-
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT value
-        FROM settings
-        WHERE key=?
-        """,
-        (key,)
-    )
-
-    result = cursor.fetchone()
-
-    conn.close()
-
-    if result:
-        return result[0]
-
-    return "Not set"
-
-
-
-# =========================
-# الحساب
+# معلومات الحساب
 # =========================
 
 def account_info(user_id):
 
     user = get_user(user_id)
 
+
     if not user:
+
         return "User not found."
+
+
+
+    plan = "Free"
+
+    if user[4]:
+
+        plan = user[4].capitalize()
+
+
+
+    phone = "Not added"
+
+    if user[3]:
+
+        phone = user[3]
+
 
 
     return (
@@ -170,49 +135,18 @@ def account_info(user_id):
 
         f"Name: {user[2]}\n"
 
-        f"Plan: {user[3].capitalize()}\n"
+        f"Phone: {phone}\n"
 
-        f"Join date: {user[4]}"
+        f"Plan: {plan}\n"
 
-    )
-
-
-
-# =========================
-# Premium
-# =========================
-
-def premium_info():
-
-    account = get_setting(
-        "payment_account"
-    )
-
-
-    return (
-
-        "💎 DrBillAcademy Premium\n\n"
-
-        "Features:\n"
-
-        "✅ Clinical Cases\n"
-
-        "✅ Advanced Medical Content\n"
-
-        "✅ MCQ Practice\n\n"
-
-        "Payment Account:\n"
-
-        f"{account}\n\n"
-
-        "After payment send your proof."
+        f"Join date: {user[5]}"
 
     )
 
 
 
 # =========================
-# التعامل مع القائمة فقط
+# التعامل مع الأزرار
 # =========================
 
 async def menu_callback(update, context):
@@ -221,26 +155,27 @@ async def menu_callback(update, context):
 
     await query.answer()
 
+
     section = query.data
-
-
-    # تجاهل زر الإدارة
-    if section == "admin":
-
-        return
 
 
 
     files = {
 
         "history": "history_taking.txt",
+
         "cardiology": "cardiology.txt",
+
         "respiratory": "respiratory.txt",
+
         "neurology": "neurology.txt",
+
         "gastro": "gastro.txt",
+
         "renal": "renal.txt",
 
     }
+
 
 
     if section in files:
@@ -250,6 +185,7 @@ async def menu_callback(update, context):
         )
 
 
+
     elif section == "account":
 
         text = account_info(
@@ -257,22 +193,22 @@ async def menu_callback(update, context):
         )
 
 
-    elif section == "premium":
-
-        text = premium_info()
-
 
     elif section == "mcq":
 
         text = (
+
             "📝 MCQ Practice\n\n"
+
             "Coming soon."
+
         )
+
 
 
     else:
 
-        return
+        text = "Choose a section."
 
 
 
@@ -280,17 +216,18 @@ async def menu_callback(update, context):
 
         text=text,
 
-        reply_markup=get_main_menu(
-            query.from_user.id
-        )
+        reply_markup=get_main_menu()
 
     )
 
 
 
+# =========================
+# ربط القائمة
+# =========================
+
 def get_menu_handler():
 
     return CallbackQueryHandler(
-        menu_callback,
-        pattern="^(?!admin$).*"
+        menu_callback
     )
