@@ -21,7 +21,10 @@ def get_admin_menu():
 
     ]
 
-    return InlineKeyboardMarkup(keyboard)
+
+    return InlineKeyboardMarkup(
+        keyboard
+    )
 
 
 
@@ -36,10 +39,7 @@ async def admin_panel(update, context):
     await query.answer()
 
 
-    user_id = query.from_user.id
-
-
-    if user_id != ADMIN_ID:
+    if query.from_user.id != ADMIN_ID:
 
         await query.edit_message_text(
             "❌ Access denied."
@@ -61,7 +61,7 @@ async def admin_panel(update, context):
 
 
 # =========================
-# زر تغيير الحساب
+# طلب رقم الحساب الجديد
 # =========================
 
 async def change_payment_account(update, context):
@@ -71,12 +71,15 @@ async def change_payment_account(update, context):
     await query.answer()
 
 
-    user_id = query.from_user.id
-
-
-    if user_id != ADMIN_ID:
+    if query.from_user.id != ADMIN_ID:
 
         return
+
+
+
+    context.user_data[
+        "waiting_payment_account"
+    ] = True
 
 
 
@@ -87,7 +90,71 @@ async def change_payment_account(update, context):
     )
 
 
-    context.user_data["waiting_payment_account"] = True
+
+# =========================
+# استقبال رقم الحساب
+# =========================
+
+async def save_payment_account(update, context):
+
+    if update.effective_user.id != ADMIN_ID:
+
+        return
+
+
+    if not context.user_data.get(
+        "waiting_payment_account"
+    ):
+
+        return
+
+
+
+    account = update.message.text
+
+
+
+    import sqlite3
+
+
+    conn = sqlite3.connect(
+        "medmrcp.db"
+    )
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO settings
+        (key, value)
+
+        VALUES (?, ?)
+        """,
+        (
+            "payment_account",
+            account
+        )
+    )
+
+
+    conn.commit()
+
+    conn.close()
+
+
+
+    context.user_data[
+        "waiting_payment_account"
+    ] = False
+
+
+
+    await update.message.reply_text(
+
+        "✅ Payment account updated successfully."
+
+    )
 
 
 
@@ -115,4 +182,4 @@ def get_payment_account_handler():
 
         pattern="^change_payment_account$"
 
-  )
+    )
