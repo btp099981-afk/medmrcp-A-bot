@@ -3,6 +3,8 @@ import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
+from core.database import get_user
+
 
 # =========================
 # القائمة الرئيسية
@@ -11,6 +13,7 @@ from telegram.ext import CallbackQueryHandler
 def get_main_menu():
 
     keyboard = [
+
         [
             InlineKeyboardButton(
                 "🫀 Cardiology",
@@ -21,22 +24,25 @@ def get_main_menu():
                 callback_data="respiratory"
             ),
         ],
+
         [
             InlineKeyboardButton(
                 "🧠 Neurology",
                 callback_data="neurology"
             ),
             InlineKeyboardButton(
-                "🍽 Gastroenterology",
+                "🍽 Gastro",
                 callback_data="gastro"
             ),
         ],
+
         [
             InlineKeyboardButton(
                 "🩺 Renal System",
                 callback_data="renal"
             ),
         ],
+
         [
             InlineKeyboardButton(
                 "📚 History Taking",
@@ -47,13 +53,22 @@ def get_main_menu():
                 callback_data="mcq"
             ),
         ],
+
+        [
+            InlineKeyboardButton(
+                "👤 My Account",
+                callback_data="account"
+            )
+        ]
+
     ]
 
     return InlineKeyboardMarkup(keyboard)
 
 
+
 # =========================
-# قراءة الملفات
+# قراءة المحتوى
 # =========================
 
 def load_content(file_name):
@@ -64,8 +79,11 @@ def load_content(file_name):
         file_name
     )
 
+
     if not os.path.exists(path):
+
         return "⚠️ Content file not found."
+
 
     with open(
         path,
@@ -74,6 +92,39 @@ def load_content(file_name):
     ) as file:
 
         return file.read()
+
+
+
+# =========================
+# زر الحساب
+# =========================
+
+def account_info(user_id):
+
+    user = get_user(user_id)
+
+
+    if not user:
+
+        return "User not found."
+
+
+    plan = user[3].capitalize()
+    join_date = user[4]
+
+
+    return (
+
+        "👤 My Account\n\n"
+
+        f"Name: {user[2]}\n"
+
+        f"Plan: {plan}\n"
+
+        f"Join date: {join_date}"
+
+    )
+
 
 
 # =========================
@@ -86,22 +137,19 @@ async def menu_callback(update, context):
 
     await query.answer()
 
+
     section = query.data
 
 
     files = {
 
         "history": "history_taking.txt",
-
         "cardiology": "cardiology.txt",
-
         "respiratory": "respiratory.txt",
-
         "neurology": "neurology.txt",
-
         "gastro": "gastro.txt",
-
         "renal": "renal.txt",
+
     }
 
 
@@ -112,33 +160,39 @@ async def menu_callback(update, context):
         )
 
 
+    elif section == "account":
+
+        text = account_info(
+            query.from_user.id
+        )
+
+
     elif section == "mcq":
 
         text = (
             "📝 MCQ Practice\n\n"
-            "Question bank coming soon."
+            "Coming soon."
         )
 
 
     else:
 
-        text = (
-            "Choose a section from the menu."
-        )
+        text = "Choose a section."
+
 
 
     await query.edit_message_text(
+
         text=text,
+
         reply_markup=get_main_menu()
+
     )
 
 
-# =========================
-# Handler
-# =========================
 
 def get_menu_handler():
 
     return CallbackQueryHandler(
         menu_callback
-    )
+)
