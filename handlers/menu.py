@@ -132,7 +132,6 @@ def get_setting(key):
 
     cursor = conn.cursor()
 
-
     cursor.execute(
         """
         SELECT value
@@ -142,16 +141,12 @@ def get_setting(key):
         (key,)
     )
 
-
     result = cursor.fetchone()
 
     conn.close()
 
-
     if result:
-
         return result[0]
-
 
     return "Not set"
 
@@ -163,15 +158,10 @@ def get_setting(key):
 
 def account_info(user_id):
 
-    user = get_user(
-        user_id
-    )
-
+    user = get_user(user_id)
 
     if not user:
-
         return "User not found."
-
 
 
     return (
@@ -222,20 +212,22 @@ def premium_info():
 
 
 # =========================
-# التعامل مع الأزرار
+# التعامل مع القائمة فقط
 # =========================
 
-async def menu_callback(
-    update,
-    context
-):
+async def menu_callback(update, context):
 
     query = update.callback_query
 
     await query.answer()
 
-
     section = query.data
+
+
+    # تجاهل زر الإدارة
+    if section == "admin":
+
+        return
 
 
 
@@ -251,13 +243,11 @@ async def menu_callback(
     }
 
 
-
     if section in files:
 
         text = load_content(
             files[section]
         )
-
 
 
     elif section == "account":
@@ -267,11 +257,9 @@ async def menu_callback(
         )
 
 
-
     elif section == "premium":
 
         text = premium_info()
-
 
 
     elif section == "mcq":
@@ -280,7 +268,6 @@ async def menu_callback(
             "📝 MCQ Practice\n\n"
             "Coming soon."
         )
-
 
 
     else:
@@ -304,5 +291,6 @@ async def menu_callback(
 def get_menu_handler():
 
     return CallbackQueryHandler(
-        menu_callback
-        )
+        menu_callback,
+        pattern="^(?!admin$).*"
+    )
