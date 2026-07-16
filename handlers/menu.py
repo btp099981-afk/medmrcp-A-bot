@@ -1,10 +1,10 @@
 import os
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-
 from telegram.ext import CallbackQueryHandler
 
 from core.database import get_user
+from config import ADMIN_ID
 
 
 
@@ -12,7 +12,7 @@ from core.database import get_user
 # القائمة الرئيسية
 # =========================
 
-def get_main_menu():
+def get_main_menu(user_id=None):
 
     keyboard = [
 
@@ -66,6 +66,20 @@ def get_main_menu():
     ]
 
 
+    if user_id == ADMIN_ID:
+
+        keyboard.append(
+
+            [
+                InlineKeyboardButton(
+                    "⚙️ Admin Panel",
+                    callback_data="admin"
+                )
+            ]
+
+        )
+
+
     return InlineKeyboardMarkup(
         keyboard
     )
@@ -106,7 +120,9 @@ def load_content(file_name):
 
 def account_info(user_id):
 
-    user = get_user(user_id)
+    user = get_user(
+        user_id
+    )
 
 
     if not user:
@@ -116,17 +132,10 @@ def account_info(user_id):
 
     plan = "Free"
 
-    if user[4]:
 
-        plan = user[4].capitalize()
+    if len(user) > 3 and user[3]:
 
-
-
-    phone = "Not added"
-
-    if user[3]:
-
-        phone = user[3]
+        plan = user[3].capitalize()
 
 
 
@@ -136,13 +145,7 @@ def account_info(user_id):
 
         f"Name: {user[2]}\n"
 
-        f"Phone: {phone}\n"
-
-        f"Plan: {plan}\n"
-
-        f"Join date: {user[5]}\n\n"
-
-        "To add or update your phone number use the button below."
+        f"Plan: {plan}"
 
     )
 
@@ -160,6 +163,7 @@ async def menu_callback(update, context):
 
 
     section = query.data
+
 
 
     files = {
@@ -196,31 +200,5 @@ async def menu_callback(update, context):
 
     elif section == "mcq":
 
-        text = "📝 MCQ Practice\n\nComing soon."
-
-
-    else:
-
-        text = "Choose a section."
-
-
-
-    await query.edit_message_text(
-
-        text=text,
-
-        reply_markup=get_main_menu()
-
-    )
-
-
-
-# =========================
-# ربط القائمة
-# =========================
-
-def get_menu_handler():
-
-    return CallbackQueryHandler(
-        menu_callback
-    )
+        text = (
+            "📝
