@@ -31,6 +31,21 @@ from handlers.chat import (
 )
 
 
+from handlers.admin import (
+    get_admin_handler,
+    get_payment_account_handler,
+    get_price_handler,
+    save_payment_account,
+    save_price
+)
+
+
+from handlers.profile import (
+    request_phone,
+    save_phone
+)
+
+
 
 # =========================
 # تحميل المتغيرات
@@ -45,7 +60,7 @@ BOT_TOKEN = os.getenv(
 
 
 # =========================
-# أمر البداية
+# البداية
 # =========================
 
 async def start(
@@ -71,9 +86,9 @@ async def start(
     plan = "Free"
 
 
-    if user_data and user_data[3]:
+    if user_data and user_data[4]:
 
-        plan = user_data[3].capitalize()
+        plan = user_data[4].capitalize()
 
 
 
@@ -81,13 +96,11 @@ async def start(
 
         f"👋 أهلاً بك {user.first_name}\n\n"
 
-        "🩺 MedMRCP AI\n"
+        "🩺 MedMRCP AI\n\n"
 
-        "مساعدك للتحضير لـ MRCP و UKMLA\n\n"
+        f"📌 Your plan: {plan}\n\n"
 
-        f"📌 خطتك الحالية: {plan}\n\n"
-
-        "اختر القسم الذي تريد دراسته:",
+        "Choose a section:",
 
         reply_markup=get_main_menu(
             user.id
@@ -98,16 +111,15 @@ async def start(
 
 
 # =========================
-# تشغيل البوت
+# التشغيل
 # =========================
 
 def main():
 
-
     if not BOT_TOKEN:
 
         print(
-            "BOT_TOKEN غير موجود"
+            "BOT_TOKEN missing"
         )
 
         return
@@ -124,24 +136,104 @@ def main():
 
 
 
-    app.add_handler(
+    # Start
 
+    app.add_handler(
         CommandHandler(
             "start",
             start
+        )
+    )
+
+
+
+    # Admin buttons
+
+    app.add_handler(
+        get_admin_handler()
+    )
+
+
+    app.add_handler(
+        get_payment_account_handler()
+    )
+
+
+    app.add_handler(
+        get_price_handler()
+    )
+
+
+
+    # Admin text input
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.TEXT & ~filters.COMMAND,
+
+            save_payment_account
+
+        )
+
+    )
+
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.TEXT & ~filters.COMMAND,
+
+            save_price
+
         )
 
     )
 
 
 
+    # Phone
+
     app.add_handler(
 
-        get_menu_handler()
+        MessageHandler(
+
+            filters.Regex(
+                "^📱 Share My Phone Number$"
+            ),
+
+            request_phone
+
+        )
 
     )
 
 
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.CONTACT,
+
+            save_phone
+
+        )
+
+    )
+
+
+
+    # Menu
+
+    app.add_handler(
+        get_menu_handler()
+    )
+
+
+
+    # Chat
 
     app.add_handler(
 
@@ -160,7 +252,6 @@ def main():
     print(
         "MedMRCP AI Bot is running..."
     )
-
 
 
     app.run_polling()
