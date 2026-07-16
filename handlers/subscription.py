@@ -3,8 +3,7 @@ from telegram.ext import CallbackQueryHandler
 
 from core.database import (
     get_setting,
-    create_payment_request,
-    get_user
+    create_payment_request
 )
 
 from config import ADMIN_ID
@@ -42,14 +41,12 @@ def get_subscription_menu():
 
     ]
 
-    return InlineKeyboardMarkup(
-        keyboard
-    )
+    return InlineKeyboardMarkup(keyboard)
 
 
 
 # =========================
-# شاشة Premium
+# صفحة Premium
 # =========================
 
 async def premium_page(update, context):
@@ -64,12 +61,12 @@ async def premium_page(update, context):
     ) or "Not set"
 
 
-    bank = get_setting(
+    account = get_setting(
         "payment_account"
     ) or "Not set"
 
 
-    whop = get_setting(
+    usdt = get_setting(
         "whop_link"
     ) or "Not set"
 
@@ -77,19 +74,15 @@ async def premium_page(update, context):
 
     await query.edit_message_text(
 
-        "⭐ Premium Plan\n\n"
+        "👑 Premium Plan\n\n"
 
         f"💰 Price: {price}\n\n"
 
-        "🏦 Bank Transfer:\n"
+        f"🏦 Payment Account:\n{account}\n\n"
 
-        f"{bank}\n\n"
+        f"🪙 USDT / Whop:\n{usdt}\n\n"
 
-        "🪙 USDT Payment:\n"
-
-        f"{whop}\n\n"
-
-        "Choose an option:",
+        "Choose payment option:",
 
         reply_markup=get_subscription_menu()
 
@@ -112,16 +105,14 @@ async def subscribe(update, context):
 
         "⭐ Premium Subscription\n\n"
 
-        "Complete payment using one of the methods above.\n\n"
-
-        "Then send your payment proof."
+        "Complete payment then send proof."
 
     )
 
 
 
 # =========================
-# طلب إثبات الدفع
+# إرسال إثبات الدفع
 # =========================
 
 async def payment_proof(update, context):
@@ -136,10 +127,10 @@ async def payment_proof(update, context):
     ] = True
 
 
+
     await query.edit_message_text(
 
-        "📤 Send your payment proof now.\n\n"
-        "You can send a screenshot or payment details."
+        "📤 Send payment proof now."
 
     )
 
@@ -164,6 +155,7 @@ async def save_payment_proof(update, context):
     proof = update.message.text
 
 
+
     create_payment_request(
 
         user.id,
@@ -171,6 +163,7 @@ async def save_payment_proof(update, context):
         proof
 
     )
+
 
 
     context.user_data[
@@ -181,7 +174,7 @@ async def save_payment_proof(update, context):
 
     await update.message.reply_text(
 
-        "✅ Payment proof received.\n\n"
+        "✅ Payment proof received.\n"
         "Waiting for admin approval."
 
     )
@@ -192,22 +185,20 @@ async def save_payment_proof(update, context):
 
         ADMIN_ID,
 
-        "🔔 New Premium Request\n\n"
+        "🔔 New Premium payment request\n\n"
 
-        f"Name: {user.first_name}\n"
+        f"User ID: {user.id}\n"
 
-        f"Username: @{user.username}\n"
+        f"Username: @{user.username}\n\n"
 
-        f"ID: {user.id}\n\n"
-
-        "Check payment request."
+        f"Proof:\n{proof}"
 
     )
 
 
 
 # =========================
-# ربط زر Premium
+# Handlers
 # =========================
 
 def get_subscription_handler():
@@ -219,3 +210,27 @@ def get_subscription_handler():
         pattern="^premium$"
 
     )
+
+
+
+def get_subscribe_handler():
+
+    return CallbackQueryHandler(
+
+        subscribe,
+
+        pattern="^subscribe$"
+
+    )
+
+
+
+def get_payment_proof_handler():
+
+    return CallbackQueryHandler(
+
+        payment_proof,
+
+        pattern="^payment_proof$"
+
+)
