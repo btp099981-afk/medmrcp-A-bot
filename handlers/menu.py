@@ -3,8 +3,8 @@ import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
-from core.database import get_user, get_setting
 from config import ADMIN_ID
+from core.database import get_user
 
 
 
@@ -24,7 +24,7 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "🫁 Respiratory",
                 callback_data="respiratory"
-            )
+            ),
         ],
 
         [
@@ -35,30 +35,19 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "🍽 Gastro",
                 callback_data="gastro"
-            )
+            ),
         ],
 
         [
             InlineKeyboardButton(
                 "🩺 Renal System",
                 callback_data="renal"
-            )
-        ],
-
-        [
-            InlineKeyboardButton(
-                "📚 History Taking",
-                callback_data="history"
             ),
-            InlineKeyboardButton(
-                "📝 MCQ Practice",
-                callback_data="mcq"
-            )
         ],
 
         [
             InlineKeyboardButton(
-                "⭐ Premium",
+                "👑 Premium",
                 callback_data="premium"
             )
         ],
@@ -94,34 +83,6 @@ def get_main_menu(user_id=None):
 
 
 # =========================
-# تحميل المحتوى
-# =========================
-
-def load_content(file_name):
-
-    path = os.path.join(
-        "content",
-        "internal_medicine",
-        file_name
-    )
-
-
-    if not os.path.exists(path):
-
-        return "⚠️ Content file not found."
-
-
-    with open(
-        path,
-        "r",
-        encoding="utf-8"
-    ) as file:
-
-        return file.read()
-
-
-
-# =========================
 # الحساب
 # =========================
 
@@ -139,16 +100,11 @@ def account_info(user_id):
 
     plan = "Free"
 
-    if user[4]:
+
+    if len(user) > 4 and user[4]:
 
         plan = user[4].capitalize()
 
-
-    phone = "Not added"
-
-    if user[3]:
-
-        phone = user[3]
 
 
     return (
@@ -157,50 +113,14 @@ def account_info(user_id):
 
         f"Name: {user[2]}\n"
 
-        f"Phone: {phone}\n"
-
-        f"Plan: {plan}\n"
-
-        f"Join date: {user[5]}"
+        f"Plan: {plan}"
 
     )
 
 
 
 # =========================
-# Premium
-# =========================
-
-def premium_info():
-
-    price = get_setting(
-        "premium_price"
-    )
-
-
-    payment = get_setting(
-        "payment_account"
-    )
-
-
-    return (
-
-        "⭐ Premium Plan\n\n"
-
-        f"💰 Price: {price}\n\n"
-
-        "💳 Payment Account:\n"
-
-        f"{payment}\n\n"
-
-        "Send payment proof to activate Premium."
-
-    )
-
-
-
-# =========================
-# التعامل مع الأزرار
+# التعامل مع القائمة
 # =========================
 
 async def menu_callback(update, context):
@@ -213,30 +133,39 @@ async def menu_callback(update, context):
     section = query.data
 
 
-    files = {
 
-        "history": "history_taking.txt",
+    # الأنظمة الطبية
 
-        "cardiology": "cardiology.txt",
+    if section in [
 
-        "respiratory": "respiratory.txt",
+        "cardiology",
+        "respiratory",
+        "neurology",
+        "gastro",
+        "renal"
 
-        "neurology": "neurology.txt",
-
-        "gastro": "gastro.txt",
-
-        "renal": "renal.txt"
-
-    }
+    ]:
 
 
+        from handlers.content import get_content_menu
 
-    if section in files:
 
-        text = load_content(
-            files[section]
+        await query.edit_message_text(
+
+            f"📚 {section.capitalize()}\n\n"
+            "Choose content type:",
+
+            reply_markup=get_content_menu(
+                section
+            )
+
         )
 
+        return
+
+
+
+    # الحساب
 
     elif section == "account":
 
@@ -245,44 +174,49 @@ async def menu_callback(update, context):
         )
 
 
+        await query.edit_message_text(
+            text
+        )
+
+        return
+
+
+
+    # Premium
+
     elif section == "premium":
 
-        text = premium_info()
+        await query.edit_message_text(
 
+            "⭐ Premium Plan\n\n"
+            "Choose Premium from the menu."
 
-
-    elif section == "mcq":
-
-        text = (
-            "📝 MCQ Practice\n\n"
-            "Coming soon."
         )
+
+        return
+
 
 
     else:
 
-        text = "Choose a section."
+        await query.edit_message_text(
 
+            "Coming soon..."
 
-
-    await query.edit_message_text(
-
-        text=text,
-
-        reply_markup=get_main_menu(
-            query.from_user.id
         )
-
-    )
 
 
 
 # =========================
-# ربط القائمة مع البوت
+# ربط القائمة
 # =========================
 
 def get_menu_handler():
 
     return CallbackQueryHandler(
-        menu_callback
-    )
+
+        menu_callback,
+
+        pattern="^(cardiology|respiratory|neurology|gastro|renal|account|premium)$"
+
+        )
