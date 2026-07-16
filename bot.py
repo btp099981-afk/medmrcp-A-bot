@@ -31,6 +31,19 @@ from handlers.chat import (
 )
 
 
+from handlers.content import (
+    get_content_handler
+)
+
+
+from handlers.subscription import (
+    get_subscription_handler,
+    get_subscribe_handler,
+    get_payment_proof_handler,
+    save_payment_proof
+)
+
+
 from handlers.admin import (
     get_admin_handler,
     get_payment_account_handler,
@@ -47,13 +60,6 @@ from handlers.profile import (
     request_phone,
     save_phone
 )
-
-
-from handlers.subscription import (
-    get_subscription_handler,
-    save_payment_proof
-)
-
 
 
 # =========================
@@ -148,20 +154,13 @@ def main():
 
 
 
-    # Start
-
     app.add_handler(
-
         CommandHandler(
             "start",
             start
         )
-
     )
-
-
-
-    # =====================
+        # =====================
     # Admin
     # =====================
 
@@ -230,6 +229,20 @@ def main():
 
     app.add_handler(
 
+        get_subscribe_handler()
+
+    )
+
+
+    app.add_handler(
+
+        get_payment_proof_handler()
+
+    )
+
+
+    app.add_handler(
+
         MessageHandler(
 
             filters.TEXT & ~filters.COMMAND,
@@ -259,7 +272,6 @@ def main():
     )
 
 
-
     app.add_handler(
 
         MessageHandler(
@@ -287,6 +299,16 @@ def main():
 
 
     # =====================
+    # Content
+    # =====================
+
+    app.add_handler(
+        get_content_handler()
+    )
+
+
+
+    # =====================
     # Chat
     # =====================
 
@@ -303,11 +325,9 @@ def main():
     )
 
 
-
     print(
         "MedMRCP AI Bot is running..."
     )
-
 
 
     app.run_polling()
