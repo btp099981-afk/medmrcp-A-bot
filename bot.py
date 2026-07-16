@@ -21,8 +21,8 @@ from core.database import (
 
 
 from handlers.menu import (
-    get_main_menu,
-    get_menu_handler
+    get_menu_handler,
+    get_main_menu
 )
 
 
@@ -34,9 +34,7 @@ from handlers.chat import (
 from handlers.admin import (
     get_admin_handler,
     get_payment_account_handler,
-    get_price_handler,
-    save_payment_account,
-    save_price
+    save_payment_account
 )
 
 
@@ -47,7 +45,8 @@ from handlers.profile import (
 
 
 from handlers.subscription import (
-    get_subscription_handler
+    get_subscription_handler,
+    save_payment_proof
 )
 
 
@@ -103,7 +102,7 @@ async def start(
 
         "🩺 MedMRCP AI\n\n"
 
-        "مساعدك للتحضير لـ MRCP و UKMLA\n\n"
+        "MRCP & UKMLA Medical Assistant\n\n"
 
         f"📌 Your plan: {plan}\n\n"
 
@@ -169,13 +168,8 @@ def main():
     )
 
 
-    app.add_handler(
-        get_price_handler()
-    )
 
-
-
-    # Admin text inputs
+    # استقبال حساب الدفع من المدير
 
     app.add_handler(
 
@@ -190,21 +184,22 @@ def main():
     )
 
 
+
+    # Phone
+
     app.add_handler(
 
         MessageHandler(
 
-            filters.TEXT & ~filters.COMMAND,
+            filters.CONTACT,
 
-            save_price
+            save_phone
 
         )
 
     )
 
 
-
-    # Phone
 
     app.add_handler(
 
@@ -221,19 +216,6 @@ def main():
     )
 
 
-    app.add_handler(
-
-        MessageHandler(
-
-            filters.CONTACT,
-
-            save_phone
-
-        )
-
-    )
-
-
 
     # Menu
 
@@ -243,10 +225,26 @@ def main():
 
 
 
-    # Subscription
+    # Premium
 
     app.add_handler(
         get_subscription_handler()
+    )
+
+
+
+    # Payment proof
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.TEXT & ~filters.COMMAND,
+
+            save_payment_proof
+
+        )
+
     )
 
 
@@ -270,6 +268,7 @@ def main():
     print(
         "MedMRCP AI Bot is running..."
     )
+
 
 
     app.run_polling()
