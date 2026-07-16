@@ -1,12 +1,18 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import CallbackQueryHandler
+from telegram.ext import CallbackQueryHandler, MessageHandler, filters
 
-from core.database import get_setting
+from core.database import (
+    get_setting,
+    create_payment_request,
+    get_user
+)
+
+from config import ADMIN_ID
 
 
 
 # =========================
-# قائمة الاشتراك
+# قائمة Premium
 # =========================
 
 def get_subscription_menu():
@@ -35,7 +41,6 @@ def get_subscription_menu():
         ]
 
     ]
-
 
     return InlineKeyboardMarkup(
         keyboard
@@ -93,16 +98,15 @@ async def subscribe(update, context):
 
     await query.edit_message_text(
 
-        "💳 To subscribe:\n\n"
-        "Send payment then press "
-        "📤 Send Payment Proof."
+        "💳 Complete payment first.\n\n"
+        "Then send your payment proof."
 
     )
 
 
 
 # =========================
-# إثبات الدفع
+# طلب إثبات الدفع
 # =========================
 
 async def payment_proof(update, context):
@@ -112,10 +116,77 @@ async def payment_proof(update, context):
     await query.answer()
 
 
+    context.user_data[
+        "waiting_payment_proof"
+    ] = True
+
+
     await query.edit_message_text(
 
-        "📤 Send your payment proof "
-        "as a photo or message."
+        "📤 Please send your payment proof now."
+
+    )
+
+
+
+# =========================
+# حفظ إثبات الدفع
+# =========================
+
+async def save_payment_proof(update, context):
+
+    if not context.user_data.get(
+        "waiting_payment_proof"
+    ):
+
+        return
+
+
+    user = update.effective_user
+
+
+    proof = update.message.text
+
+
+    create_payment_request(
+
+        user.id,
+
+        proof
+
+    )
+
+
+    context.user_data[
+        "waiting_payment_proof"
+    ] = False
+
+
+
+    await update.message.reply_text(
+
+        "✅ Payment proof received.\n"
+        "Waiting for admin approval."
+
+    )
+
+
+
+    # إرسال إشعار للمدير
+
+    await context.bot.send_message(
+
+        ADMIN_ID,
+
+        "🔔 New Premium Payment Request\n\n"
+
+        f"Name: {user.first_name}\n"
+
+        f"Username: @{user.username}\n"
+
+        f"ID: {user.id}\n\n"
+
+        "Please review the payment."
 
     )
 
@@ -133,4 +204,4 @@ def get_subscription_handler():
 
         pattern="^premium$"
 
-  )
+    )
