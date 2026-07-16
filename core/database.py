@@ -550,3 +550,27 @@ def update_payment_status(
     conn.commit()
 
     conn.close()
+# =========================
+# جلب كل المستخدمين (مستقبلاً للإدارة)
+# =========================
+
+def get_all_users():
+
+    conn = sqlite3.connect(
+        DATABASE_NAME
+    )
+
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM users
+        """
+    )
+
+    users = cursor.fetchall()
+
+    conn.close()
+
+    return users
