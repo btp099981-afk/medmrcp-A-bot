@@ -38,6 +38,12 @@ from handlers.admin import (
 )
 
 
+from handlers.profile import (
+    request_phone,
+    save_phone
+)
+
+
 
 # =========================
 # تحميل المتغيرات
@@ -78,14 +84,9 @@ async def start(
     plan = "Free"
 
 
-    if user_data:
+    if user_data and user_data[4]:
 
-        # بعد إضافة phone_number
-        # plan أصبح العمود رقم 4
-
-        if user_data[4]:
-
-            plan = user_data[4].capitalize()
+        plan = user_data[4].capitalize()
 
 
 
@@ -93,18 +94,15 @@ async def start(
 
         f"👋 أهلاً بك {user.first_name}\n\n"
 
-        "🩺 DrBillAcademy\n"
+        "🩺 DrBillAcademy\n\n"
 
-        "Medical Learning Platform\n\n"
+        f"📌 Your plan: {plan}\n\n"
 
-        f"📌 خطتك الحالية: {plan}\n\n"
-
-        "اختر القسم الذي تريد دراسته:",
+        "Choose a section:",
 
         reply_markup=get_main_menu()
 
     )
-
 
 
 
@@ -117,9 +115,7 @@ def main():
 
     if not BOT_TOKEN:
 
-        print(
-            "BOT_TOKEN غير موجود"
-        )
+        print("BOT_TOKEN غير موجود")
 
         return
 
@@ -144,6 +140,8 @@ def main():
 
 
 
+    # Admin
+
     app.add_handler(
         get_admin_handler()
     )
@@ -155,12 +153,13 @@ def main():
 
 
 
+    # استقبال رقم الحساب من المدير
+
     app.add_handler(
 
         MessageHandler(
 
-            filters.TEXT
-            & ~filters.COMMAND,
+            filters.TEXT & ~filters.COMMAND,
 
             save_payment_account
 
@@ -170,18 +169,55 @@ def main():
 
 
 
+    # طلب رقم الهاتف
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.Regex(
+                "^📱 Share My Phone Number$"
+            ),
+
+            request_phone
+
+        )
+
+    )
+
+
+
+    # حفظ رقم الهاتف
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.CONTACT,
+
+            save_phone
+
+        )
+
+    )
+
+
+
+    # القائمة
+
     app.add_handler(
         get_menu_handler()
     )
 
 
 
+    # الرسائل العادية
+
     app.add_handler(
 
         MessageHandler(
 
-            filters.TEXT
-            & ~filters.COMMAND,
+            filters.TEXT & ~filters.COMMAND,
 
             handle_message
 
