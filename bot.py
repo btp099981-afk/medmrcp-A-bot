@@ -71,7 +71,7 @@ async def start(
     plan = "Free"
 
 
-    if user_data:
+    if user_data and user_data[3]:
 
         plan = user_data[3].capitalize()
 
