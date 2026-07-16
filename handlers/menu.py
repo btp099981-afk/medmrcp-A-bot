@@ -24,7 +24,7 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "🫁 Respiratory",
                 callback_data="respiratory"
-            ),
+            )
         ],
 
         [
@@ -35,24 +35,43 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "🍽 Gastro",
                 callback_data="gastro"
-            ),
+            )
         ],
 
         [
             InlineKeyboardButton(
                 "🩺 Renal System",
                 callback_data="renal"
-            ),
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "📋 History Taking",
+                callback_data="history_menu"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "🩺 Clinical Examination",
+                callback_data="exam_menu"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "📝 MRCP Practice",
+                callback_data="mcq_menu"
+            )
         ],
 
         [
             InlineKeyboardButton(
                 "👑 Premium",
                 callback_data="premium"
-            )
-        ],
+            ),
 
-        [
             InlineKeyboardButton(
                 "👤 My Account",
                 callback_data="account"
@@ -106,7 +125,6 @@ def account_info(user_id):
         plan = user[4].capitalize()
 
 
-
     return (
 
         "👤 My Account\n\n"
@@ -120,7 +138,7 @@ def account_info(user_id):
 
 
 # =========================
-# التعامل مع القائمة
+# التعامل مع الأزرار
 # =========================
 
 async def menu_callback(update, context):
@@ -134,8 +152,6 @@ async def menu_callback(update, context):
 
 
 
-    # الأنظمة الطبية
-
     if section in [
 
         "cardiology",
@@ -145,7 +161,6 @@ async def menu_callback(update, context):
         "renal"
 
     ]:
-
 
         from handlers.content import get_content_menu
 
@@ -165,31 +180,77 @@ async def menu_callback(update, context):
 
 
 
-    # الحساب
+    elif section == "history_menu":
 
-    elif section == "account":
-
-        text = account_info(
-            query.from_user.id
-        )
+        from handlers.history import get_history_menu
 
 
         await query.edit_message_text(
-            text
+
+            "📋 History Taking",
+
+            reply_markup=get_history_menu()
+
         )
 
         return
 
 
 
-    # Premium
+    elif section == "exam_menu":
+
+        from handlers.examination import get_examination_menu
+
+
+        await query.edit_message_text(
+
+            "🩺 Clinical Examination",
+
+            reply_markup=get_examination_menu()
+
+        )
+
+        return
+
+
+
+    elif section == "mcq_menu":
+
+        from handlers.mcq import get_mcq_menu
+
+
+        await query.edit_message_text(
+
+            "📝 MRCP Practice",
+
+            reply_markup=get_mcq_menu()
+
+        )
+
+        return
+
+
+
+    elif section == "account":
+
+        await query.edit_message_text(
+
+            account_info(
+                query.from_user.id
+            )
+
+        )
+
+        return
+
+
 
     elif section == "premium":
 
         await query.edit_message_text(
 
-            "⭐ Premium Plan\n\n"
-            "Choose Premium from the menu."
+            "👑 Premium\n\n"
+            "Premium features coming soon."
 
         )
 
@@ -208,7 +269,7 @@ async def menu_callback(update, context):
 
 
 # =========================
-# ربط القائمة
+# Handler
 # =========================
 
 def get_menu_handler():
@@ -217,6 +278,6 @@ def get_menu_handler():
 
         menu_callback,
 
-        pattern="^(cardiology|respiratory|neurology|gastro|renal|account|premium)$"
+        pattern="^(cardiology|respiratory|neurology|gastro|renal|history_menu|exam_menu|mcq_menu|account|premium)$"
 
-        )
+    )
