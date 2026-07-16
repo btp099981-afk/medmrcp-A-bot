@@ -29,6 +29,20 @@ def get_admin_menu():
 
         [
             InlineKeyboardButton(
+                "💰 Change Premium Price",
+                callback_data="change_price"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "🪙 Change USDT Link",
+                callback_data="change_whop"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
                 "🔔 Payment Requests",
                 callback_data="payment_requests"
             )
@@ -36,15 +50,12 @@ def get_admin_menu():
 
     ]
 
-
-    return InlineKeyboardMarkup(
-        keyboard
-    )
+    return InlineKeyboardMarkup(keyboard)
 
 
 
 # =========================
-# فتح لوحة الإدارة
+# فتح الإدارة
 # =========================
 
 async def admin_panel(update, context):
@@ -56,22 +67,157 @@ async def admin_panel(update, context):
 
     if query.from_user.id != ADMIN_ID:
 
-        await query.edit_message_text(
-            "❌ Access denied."
-        )
-
         return
-
 
 
     await query.edit_message_text(
 
-        "⚙️ DrBillAcademy Admin Panel\n\n"
+        "⚙️ Admin Panel\n\n"
         "Choose an action:",
 
         reply_markup=get_admin_menu()
 
     )
+
+
+
+# =========================
+# تغيير الحساب البنكي
+# =========================
+
+async def change_payment_account(update, context):
+
+    query = update.callback_query
+
+    await query.answer()
+
+
+    context.user_data[
+        "waiting_payment_account"
+    ] = True
+
+
+    await query.edit_message_text(
+        "💳 Send new payment account:"
+    )
+
+
+
+# =========================
+# تغيير السعر
+# =========================
+
+async def change_price(update, context):
+
+    query = update.callback_query
+
+    await query.answer()
+
+
+    context.user_data[
+        "waiting_price"
+    ] = True
+
+
+    await query.edit_message_text(
+        "💰 Send new Premium price:"
+    )
+
+
+
+# =========================
+# تغيير رابط Whop
+# =========================
+
+async def change_whop(update, context):
+
+    query = update.callback_query
+
+    await query.answer()
+
+
+    context.user_data[
+        "waiting_whop"
+    ] = True
+
+
+    await query.edit_message_text(
+        "🪙 Send new USDT / Whop link:"
+    )
+
+
+
+# =========================
+# حفظ إعدادات الإدارة
+# =========================
+
+async def save_admin_setting(update, context):
+
+    if update.effective_user.id != ADMIN_ID:
+
+        return
+
+
+    text = update.message.text
+
+
+    if context.user_data.get(
+        "waiting_payment_account"
+    ):
+
+        update_setting(
+            "payment_account",
+            text
+        )
+
+        context.user_data[
+            "waiting_payment_account"
+        ] = False
+
+
+        await update.message.reply_text(
+            "✅ Payment account updated."
+        )
+
+
+
+    elif context.user_data.get(
+        "waiting_price"
+    ):
+
+        update_setting(
+            "premium_price",
+            text
+        )
+
+        context.user_data[
+            "waiting_price"
+        ] = False
+
+
+        await update.message.reply_text(
+            "✅ Premium price updated."
+        )
+
+
+
+    elif context.user_data.get(
+        "waiting_whop"
+    ):
+
+        update_setting(
+            "whop_link",
+            text
+        )
+
+        context.user_data[
+            "waiting_whop"
+        ] = False
+
+
+        await update.message.reply_text(
+            "✅ USDT/Whop link updated."
+        )
 
 
 
@@ -86,39 +232,33 @@ async def payment_requests(update, context):
     await query.answer()
 
 
-    if query.from_user.id != ADMIN_ID:
-
-        return
-
-
-
     requests = get_pending_payments()
 
 
     if not requests:
 
         await query.edit_message_text(
-            "No pending payment requests."
+            "No pending requests."
         )
 
         return
 
 
 
-    for request in requests:
+    for item in requests:
 
-        request_id = request[0]
+        request_id = item[0]
 
-        user_id = request[1]
+        user_id = item[1]
 
-        proof = request[2]
+        proof = item[2]
 
 
         keyboard = [
 
             [
                 InlineKeyboardButton(
-                    "✅ Approve Premium",
+                    "✅ Approve",
                     callback_data=f"approve_{request_id}_{user_id}"
                 )
             ],
@@ -137,10 +277,8 @@ async def payment_requests(update, context):
 
             ADMIN_ID,
 
-            "🔔 Premium Payment Request\n\n"
-
-            f"User ID: {user_id}\n\n"
-
+            f"🔔 Payment Request\n\n"
+            f"User: {user_id}\n\n"
             f"Proof:\n{proof}",
 
             reply_markup=InlineKeyboardMarkup(
@@ -148,12 +286,6 @@ async def payment_requests(update, context):
             )
 
         )
-
-
-    await query.edit_message_text(
-        "✅ Payment requests sent."
-    )
-
 
 
 # =========================
@@ -167,12 +299,6 @@ async def approve_payment(update, context):
     await query.answer()
 
 
-    if query.from_user.id != ADMIN_ID:
-
-        return
-
-
-
     data = query.data.split("_")
 
 
@@ -182,20 +308,14 @@ async def approve_payment(update, context):
 
 
     update_payment_status(
-
         request_id,
-
         "approved"
-
     )
 
 
     update_plan(
-
         user_id,
-
         "premium"
-
     )
 
 
@@ -203,16 +323,13 @@ async def approve_payment(update, context):
 
         user_id,
 
-        "🎉 Congratulations!\n\n"
-        "Your Premium plan is now active."
+        "🎉 Your Premium plan is active."
 
     )
 
 
     await query.edit_message_text(
-
-        "✅ User upgraded to Premium."
-
+        "✅ Approved."
     )
 
 
@@ -228,155 +345,78 @@ async def reject_payment(update, context):
     await query.answer()
 
 
-    if query.from_user.id != ADMIN_ID:
-
-        return
-
-
-
     request_id = int(
         query.data.split("_")[1]
     )
 
 
     update_payment_status(
-
         request_id,
-
         "rejected"
-
     )
 
 
     await query.edit_message_text(
-
-        "❌ Payment rejected."
-
+        "❌ Rejected."
     )
 
 
 
 # =========================
-# تغيير حساب الدفع
-# =========================
-
-async def change_payment_account(update, context):
-
-    query = update.callback_query
-
-    await query.answer()
-
-
-    context.user_data[
-        "waiting_payment_account"
-    ] = True
-
-
-    await query.edit_message_text(
-
-        "💳 Send new payment account."
-
-    )
-
-
-
-# =========================
-# حفظ حساب الدفع
-# =========================
-
-async def save_payment_account(update, context):
-
-    if update.effective_user.id != ADMIN_ID:
-
-        return
-
-
-    if not context.user_data.get(
-        "waiting_payment_account"
-    ):
-
-        return
-
-
-
-    update_setting(
-
-        "payment_account",
-
-        update.message.text
-
-    )
-
-
-    context.user_data[
-        "waiting_payment_account"
-    ] = False
-
-
-
-    await update.message.reply_text(
-
-        "✅ Payment account updated."
-
-    )
-
-
-
-# =========================
-# الربط
+# Handlers
 # =========================
 
 def get_admin_handler():
 
     return CallbackQueryHandler(
-
         admin_panel,
-
         pattern="^admin$"
-
     )
-
 
 
 def get_payment_account_handler():
 
     return CallbackQueryHandler(
-
         change_payment_account,
-
         pattern="^change_payment_account$"
-
     )
 
 
 def get_payment_requests_handler():
 
     return CallbackQueryHandler(
-
         payment_requests,
-
         pattern="^payment_requests$"
+    )
 
+
+def get_price_handler():
+
+    return CallbackQueryHandler(
+        change_price,
+        pattern="^change_price$"
+    )
+
+
+def get_whop_handler():
+
+    return CallbackQueryHandler(
+        change_whop,
+        pattern="^change_whop$"
     )
 
 
 def get_approve_handler():
 
     return CallbackQueryHandler(
-
         approve_payment,
-
         pattern="^approve_"
-
     )
 
 
 def get_reject_handler():
 
     return CallbackQueryHandler(
-
         reject_payment,
-
         pattern="^reject_"
-
-        )
+    )
