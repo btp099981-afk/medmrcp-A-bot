@@ -1,6 +1,8 @@
 import os
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CallbackQueryHandler
+
 
 
 # =========================
@@ -42,21 +44,82 @@ def get_content_menu(system):
     ]
 
 
-    return InlineKeyboardMarkup(
-        keyboard
+    return InlineKeyboardMarkup(keyboard)
+
+
+
+# =========================
+# تحديد اسم الملف
+# =========================
+
+def get_file_name(content_type, system):
+
+
+    files = {
+
+        "notes_cardiology":
+        "cardiology_notes.txt",
+
+        "notes_respiratory":
+        "respiratory_notes.txt",
+
+        "notes_neurology":
+        "neurology_notes.txt",
+
+        "notes_gastro":
+        "gastro_notes.txt",
+
+        "notes_renal":
+        "renal_notes.txt",
+
+
+
+        "cases_cardiology":
+        "case_cardiology.txt",
+
+        "cases_respiratory":
+        "case_respiratory.txt",
+
+        "cases_neurology":
+        "case_neurology.txt",
+
+        "cases_gastro":
+        "case_gastro.txt",
+
+        "cases_renal":
+        "case_renal.txt"
+
+    }
+
+
+    return files.get(
+        f"{content_type}_{system}"
     )
 
 
 
 # =========================
-# قراءة الملفات
+# قراءة الملف
 # =========================
 
-def read_content(path):
+def read_content(filename):
+
+    if not filename:
+
+        return "⚠️ Content not available yet."
+
+
+
+    path = os.path.join(
+        "content",
+        filename
+    )
+
 
     if not os.path.exists(path):
 
-        return "⚠️ Content not available yet."
+        return "⚠️ Content file not found."
+
 
 
     with open(
@@ -89,38 +152,28 @@ async def open_content(update, context):
 
 
 
-    path = os.path.join(
-
-        "content",
-
-        system,
-
-        f"{content_type}.txt"
-
+    filename = get_file_name(
+        content_type,
+        system
     )
 
 
 
     text = read_content(
-        path
+        filename
     )
 
 
 
     await query.edit_message_text(
-
         text
-
     )
 
 
 
 # =========================
-# ربط handler
+# Handler
 # =========================
-
-from telegram.ext import CallbackQueryHandler
-
 
 def get_content_handler():
 
