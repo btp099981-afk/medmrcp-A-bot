@@ -34,10 +34,7 @@ from handlers.chat import (
 from handlers.admin import (
     get_admin_handler,
     get_payment_account_handler,
-    get_discount_handler,
-    get_discount_select_handler,
-    save_payment_account,
-    save_discount
+    save_payment_account
 )
 
 
@@ -136,8 +133,6 @@ def main():
 
 
 
-    # start
-
     app.add_handler(
 
         CommandHandler(
@@ -149,7 +144,7 @@ def main():
 
 
 
-    # Admin Panel
+    # Admin
 
     app.add_handler(
         get_admin_handler()
@@ -161,18 +156,8 @@ def main():
     )
 
 
-    app.add_handler(
-        get_discount_handler()
-    )
 
-
-    app.add_handler(
-        get_discount_select_handler()
-    )
-
-
-
-    # استقبال رقم الحساب
+    # استقبال رقم الحساب من المدير
 
     app.add_handler(
 
@@ -181,22 +166,6 @@ def main():
             filters.TEXT & ~filters.COMMAND,
 
             save_payment_account
-
-        )
-
-    )
-
-
-
-    # استقبال رقم الهاتف للخصم
-
-    app.add_handler(
-
-        MessageHandler(
-
-            filters.TEXT & ~filters.COMMAND,
-
-            save_discount
 
         )
 
@@ -222,7 +191,7 @@ def main():
 
 
 
-    # حفظ هاتف المستخدم
+    # حفظ رقم الهاتف
 
     app.add_handler(
 
@@ -238,7 +207,7 @@ def main():
 
 
 
-    # Menu
+    # القائمة
 
     app.add_handler(
         get_menu_handler()
@@ -246,7 +215,7 @@ def main():
 
 
 
-    # Chat
+    # الرسائل العادية
 
     app.add_handler(
 
