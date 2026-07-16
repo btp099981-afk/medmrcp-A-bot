@@ -7,20 +7,27 @@ DATABASE_NAME = "medmrcp.db"
 
 
 # =========================
+# الاتصال
+# =========================
+
+def get_connection():
+
+    return sqlite3.connect(
+        DATABASE_NAME
+    )
+
+
+
+# =========================
 # إنشاء قاعدة البيانات
 # =========================
 
 def create_database():
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
-
-
-    # جدول المستخدمين
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
@@ -41,9 +48,6 @@ def create_database():
     """)
 
 
-
-    # جدول الإعدادات
-
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS settings (
 
@@ -54,9 +58,6 @@ def create_database():
     )
     """)
 
-
-
-    # جدول الخصومات
 
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS discounts (
@@ -69,9 +70,6 @@ def create_database():
     """)
 
 
-
-    # جدول الدفع
-
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS payments (
 
@@ -79,16 +77,13 @@ def create_database():
 
         user_id INTEGER,
 
-        status TEXT DEFAULT 'pending',
+        status TEXT,
 
         date TEXT
 
     )
     """)
 
-
-
-    # إعدادات افتراضية
 
     cursor.execute(
         """
@@ -123,11 +118,8 @@ def create_database():
     )
 
 
-
     conn.commit()
-
     conn.close()
-
 
 
 
@@ -141,17 +133,13 @@ def add_user(
     first_name
 ):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
 
-
     cursor.execute(
         """
-
         INSERT OR IGNORE INTO users
 
         (
@@ -161,87 +149,30 @@ def add_user(
         join_date
         )
 
-        VALUES (?, ?, ?, ?)
+        VALUES (?,?,?,?)
 
         """,
-
         (
-
-        user_id,
-
-        username,
-
-        first_name,
-
-        datetime.now().strftime(
-            "%Y-%m-%d"
+            user_id,
+            username,
+            first_name,
+            datetime.now().strftime("%Y-%m-%d")
         )
-
-        )
-
-    )
-
-
-
-    conn.commit()
-
-    conn.close()
-
-
-
-
-# =========================
-# تحديث رقم الهاتف
-# =========================
-
-def update_phone(
-    user_id,
-    phone
-):
-
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
-
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        UPDATE users
-
-        SET phone_number=?
-
-        WHERE user_id=?
-
-        """,
-
-        (
-            phone,
-            user_id
-        )
-
     )
 
 
     conn.commit()
-
     conn.close()
 
 
 
-
 # =========================
-# جلب بيانات المستخدم
+# جلب مستخدم
 # =========================
 
-def get_user(
-    user_id
-):
+def get_user(user_id):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
@@ -253,18 +184,14 @@ def get_user(
         FROM users
 
         WHERE user_id=?
-
         """,
-
         (
             user_id,
         )
-
     )
 
 
     user = cursor.fetchone()
-
 
     conn.close()
 
@@ -273,18 +200,13 @@ def get_user(
 
 
 
-
 # =========================
-# البحث برقم الهاتف
+# البحث بالهاتف
 # =========================
 
-def get_user_by_phone(
-    phone
-):
+def get_user_by_phone(phone):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
@@ -296,24 +218,53 @@ def get_user_by_phone(
         FROM users
 
         WHERE phone_number=?
-
         """,
-
         (
             phone,
         )
-
     )
 
 
     user = cursor.fetchone()
-
 
     conn.close()
 
 
     return user
 
+
+
+# =========================
+# تحديث الهاتف
+# =========================
+
+def update_phone(
+    user_id,
+    phone
+):
+
+    conn = get_connection()
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        UPDATE users
+
+        SET phone_number=?
+
+        WHERE user_id=?
+        """,
+        (
+            phone,
+            user_id
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
 
 
 
@@ -326,41 +277,33 @@ def update_plan(
     plan
 ):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
-
         UPDATE users
 
         SET plan=?
 
         WHERE user_id=?
-
         """,
-
         (
             plan,
             user_id
         )
-
     )
 
 
     conn.commit()
-
     conn.close()
 
 
 
-
 # =========================
-# إضافة خصم
+# الخصومات
 # =========================
 
 def add_discount(
@@ -368,16 +311,13 @@ def add_discount(
     percent
 ):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
-
         INSERT OR REPLACE INTO discounts
 
         (
@@ -386,59 +326,41 @@ def add_discount(
         )
 
         VALUES (?,?)
-
         """,
-
         (
             user_id,
             percent
         )
-
     )
 
 
     conn.commit()
-
     conn.close()
 
 
 
+def get_discount(user_id):
 
-# =========================
-# جلب الخصم
-# =========================
-
-def get_discount(
-    user_id
-):
-
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
-
         SELECT discount_percent
 
         FROM discounts
 
         WHERE user_id=?
-
         """,
-
         (
             user_id,
         )
-
     )
 
 
     result = cursor.fetchone()
-
 
     conn.close()
 
@@ -452,9 +374,8 @@ def get_discount(
 
 
 
-
 # =========================
-# تغيير إعداد
+# الإعدادات
 # =========================
 
 def update_setting(
@@ -462,77 +383,53 @@ def update_setting(
     value
 ):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
-
         INSERT OR REPLACE INTO settings
 
-        (
-        key,
-        value
-        )
+        (key,value)
 
         VALUES (?,?)
-
         """,
-
         (
             key,
             value
         )
-
     )
 
 
     conn.commit()
-
     conn.close()
 
 
 
+def get_setting(key):
 
-# =========================
-# جلب إعداد
-# =========================
-
-def get_setting(
-    key
-):
-
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
+    conn = get_connection()
 
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
-
         SELECT value
 
         FROM settings
 
         WHERE key=?
-
         """,
-
         (
             key,
         )
-
     )
 
 
     result = cursor.fetchone()
-
 
     conn.close()
 
