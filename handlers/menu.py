@@ -53,7 +53,7 @@ def get_main_menu():
 
 
 # =========================
-# قراءة المحتوى
+# قراءة الملفات
 # =========================
 
 def load_content(file_name):
@@ -89,11 +89,28 @@ async def menu_callback(update, context):
     section = query.data
 
 
-    if section == "history":
+    files = {
+
+        "history": "history_taking.txt",
+
+        "cardiology": "cardiology.txt",
+
+        "respiratory": "respiratory.txt",
+
+        "neurology": "neurology.txt",
+
+        "gastro": "gastro.txt",
+
+        "renal": "renal.txt",
+    }
+
+
+    if section in files:
 
         text = load_content(
-            "history_taking.txt"
+            files[section]
         )
+
 
     elif section == "mcq":
 
@@ -102,28 +119,10 @@ async def menu_callback(update, context):
             "Question bank coming soon."
         )
 
+
     else:
 
-        sections = {
-
-            "cardiology":
-                "🫀 Cardiology\n\nContent will be loaded soon.",
-
-            "respiratory":
-                "🫁 Respiratory\n\nContent will be loaded soon.",
-
-            "neurology":
-                "🧠 Neurology\n\nContent will be loaded soon.",
-
-            "gastro":
-                "🍽 Gastroenterology\n\nContent will be loaded soon.",
-
-            "renal":
-                "🩺 Renal System\n\nContent will be loaded soon.",
-        }
-
-        text = sections.get(
-            section,
+        text = (
             "Choose a section from the menu."
         )
 
