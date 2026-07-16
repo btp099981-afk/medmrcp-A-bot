@@ -1,229 +1,433 @@
-import os
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import CallbackQueryHandler
 
-from dotenv import load_dotenv
-
-from telegram import Update
-
-from telegram.ext import (
-    Application,
-    CommandHandler,
-    MessageHandler,
-    ContextTypes,
-    filters
-)
-
+from config import ADMIN_ID
 
 from core.database import (
-    create_database,
-    add_user,
-    get_user
-)
-
-
-from handlers.menu import (
-    get_main_menu,
-    get_menu_handler
-)
-
-
-from handlers.chat import (
-    handle_message
-)
-
-
-from handlers.admin import (
-    get_admin_handler,
-    get_payment_account_handler,
-    save_payment_account
-)
-
-
-from handlers.profile import (
-    request_phone,
-    save_phone
+    add_discount,
+    get_user_by_phone
 )
 
 
 
 # =========================
-# Load environment
+# لوحة الإدارة
 # =========================
 
-load_dotenv()
+def get_admin_menu():
 
-BOT_TOKEN = os.getenv(
-    "BOT_TOKEN"
-)
+    keyboard = [
 
+        [
+            InlineKeyboardButton(
+                "💳 Change Payment Account",
+                callback_data="change_payment_account"
+            )
+        ],
 
+        [
+            InlineKeyboardButton(
+                "🎁 Add Discount",
+                callback_data="add_discount"
+            )
+        ]
 
-# =========================
-# Start command
-# =========================
-
-async def start(
-    update: Update,
-    context: ContextTypes.DEFAULT_TYPE
-):
-
-    user = update.effective_user
-
-
-    add_user(
-        user.id,
-        user.username,
-        user.first_name
-    )
+    ]
 
 
-    user_data = get_user(
-        user.id
-    )
-
-
-    plan = "Free"
-
-
-    if user_data:
-
-        if len(user_data) > 4 and user_data[4]:
-
-            plan = user_data[4].capitalize()
-
-
-
-    await update.message.reply_text(
-
-        f"👋 Welcome {user.first_name}\n\n"
-
-        "🩺 DrBillAcademy\n\n"
-
-        f"📌 Plan: {plan}\n\n"
-
-        "Choose a section:",
-
-        reply_markup=get_main_menu()
-
+    return InlineKeyboardMarkup(
+        keyboard
     )
 
 
 
 # =========================
-# Main
+# شاشة اختيار الخصم
 # =========================
 
-def main():
+def get_discount_menu():
+
+    keyboard = [
+
+        [
+            InlineKeyboardButton(
+                "10%",
+                callback_data="discount_10"
+            ),
+
+            InlineKeyboardButton(
+                "25%",
+                callback_data="discount_25"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "50%",
+                callback_data="discount_50"
+            ),
+
+            InlineKeyboardButton(
+                "75%",
+                callback_data="discount_75"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "100%",
+                callback_data="discount_100"
+            )
+        ],
+
+        [
+            InlineKeyboardButton(
+                "🔙 Back",
+                callback_data="admin"
+            )
+        ]
+
+    ]
 
 
-    if not BOT_TOKEN:
+    return InlineKeyboardMarkup(
+        keyboard
+    )
 
-        print(
-            "BOT_TOKEN missing"
+
+
+# =========================
+# فتح لوحة الإدارة
+# =========================
+
+async def admin_panel(update, context):
+
+    query = update.callback_query
+
+    await query.answer()
+
+
+
+    if query.from_user.id != ADMIN_ID:
+
+        await query.edit_message_text(
+            "❌ Access denied."
         )
 
         return
 
 
 
-    create_database()
+    await query.edit_message_text(
+
+        "⚙️ DrBillAcademy Admin Panel\n\n"
+        "Choose an action:",
+
+        reply_markup=get_admin_menu()
+
+    )
 
 
 
-    app = Application.builder().token(
-        BOT_TOKEN
-    ).build()
+# =========================
+# بدء إضافة الخصم
+# =========================
+
+async def add_discount_menu(update, context):
+
+    query = update.callback_query
+
+    await query.answer()
 
 
 
-    # Start
+    if query.from_user.id != ADMIN_ID:
 
-    app.add_handler(
-        CommandHandler(
-            "start",
-            start
+        return
+
+
+
+    await query.edit_message_text(
+
+        "🎁 Select discount percentage:",
+
+        reply_markup=get_discount_menu()
+
+    )
+
+
+
+# =========================
+# اختيار نسبة الخصم
+# =========================
+
+async def select_discount(update, context):
+
+    query = update.callback_query
+
+    await query.answer()
+
+
+
+    if query.from_user.id != ADMIN_ID:
+
+        return
+
+
+
+    percent = int(
+        query.data.split("_")[1]
+    )
+
+
+
+    context.user_data[
+        "discount_percent"
+    ] = percent
+
+
+
+    context.user_data[
+        "waiting_discount_phone"
+    ] = True
+
+
+
+    await query.edit_message_text(
+
+        f"🎁 Discount selected: {percent}%\n\n"
+        "📱 Send user's phone number."
+
+    )
+
+
+
+# =========================
+# استقبال رقم الهاتف للخصم
+# =========================
+
+async def save_discount(update, context):
+
+    if update.effective_user.id != ADMIN_ID:
+
+        return
+
+
+
+    if not context.user_data.get(
+        "waiting_discount_phone"
+    ):
+
+        return
+
+
+
+    phone = update.message.text
+
+
+
+    user = get_user_by_phone(
+        phone
+    )
+
+
+
+    if not user:
+
+        await update.message.reply_text(
+
+            "❌ User not found."
+
         )
+
+        return
+
+
+
+    percent = context.user_data.get(
+        "discount_percent",
+        0
     )
 
 
 
-    # Admin
+    add_discount(
 
-    app.add_handler(
-        get_admin_handler()
+        user[0],
+
+        percent
+
     )
 
 
-    app.add_handler(
-        get_payment_account_handler()
+
+    context.user_data[
+        "waiting_discount_phone"
+    ] = False
+
+
+
+    await update.message.reply_text(
+
+        "✅ Discount added successfully.\n\n"
+
+        f"User: {user[2]}\n"
+
+        f"Discount: {percent}%"
+
     )
 
 
 
-    # Payment account text
+# =========================
+# طلب رقم الحساب الجديد
+# =========================
 
-    app.add_handler(
+async def change_payment_account(update, context):
 
-        MessageHandler(
+    query = update.callback_query
 
-            filters.TEXT & ~filters.COMMAND,
+    await query.answer()
 
-            save_payment_account
 
+
+    if query.from_user.id != ADMIN_ID:
+
+        return
+
+
+
+    context.user_data[
+        "waiting_payment_account"
+    ] = True
+
+
+
+    await query.edit_message_text(
+
+        "💳 Send the new payment account number."
+
+    )
+
+
+
+# =========================
+# استقبال رقم الحساب
+# =========================
+
+async def save_payment_account(update, context):
+
+    if update.effective_user.id != ADMIN_ID:
+
+        return
+
+
+
+    if not context.user_data.get(
+        "waiting_payment_account"
+    ):
+
+        return
+
+
+
+    account = update.message.text
+
+
+
+    import sqlite3
+
+
+    conn = sqlite3.connect(
+        "medmrcp.db"
+    )
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+
+        """
+        INSERT OR REPLACE INTO settings
+        (key,value)
+
+        VALUES (?,?)
+        """,
+
+        (
+            "payment_account",
+            account
         )
 
     )
 
 
+    conn.commit()
 
-    # Phone
-
-    app.add_handler(
-
-        MessageHandler(
-
-            filters.CONTACT,
-
-            save_phone
-
-        )
-
-    )
+    conn.close()
 
 
 
-    # Menu
-
-    app.add_handler(
-        get_menu_handler()
-    )
+    context.user_data[
+        "waiting_payment_account"
+    ] = False
 
 
 
-    # Normal chat
+    await update.message.reply_text(
 
-    app.add_handler(
-
-        MessageHandler(
-
-            filters.TEXT & ~filters.COMMAND,
-
-            handle_message
-
-        )
+        "✅ Payment account updated successfully."
 
     )
 
 
 
-    print(
-        "DrBillAcademy Bot is running..."
+# =========================
+# ربط لوحة الإدارة
+# =========================
+
+def get_admin_handler():
+
+    return CallbackQueryHandler(
+
+        admin_panel,
+
+        pattern="^admin$"
+
     )
 
 
-    app.run_polling()
+
+def get_discount_handler():
+
+    return CallbackQueryHandler(
+
+        add_discount_menu,
+
+        pattern="^add_discount$"
+
+    )
 
 
 
-if __name__ == "__main__":
+def get_discount_select_handler():
 
-    main()
+    return CallbackQueryHandler(
+
+        select_discount,
+
+        pattern="^discount_"
+
+    )
+
+
+
+def get_payment_account_handler():
+
+    return CallbackQueryHandler(
+
+        change_payment_account,
+
+        pattern="^change_payment_account$"
+
+    )
