@@ -1,6 +1,7 @@
 import os
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+
 from telegram.ext import CallbackQueryHandler
 
 from core.database import get_user
@@ -60,9 +61,10 @@ def get_main_menu():
                 "👤 My Account",
                 callback_data="account"
             )
-        ],
+        ]
 
     ]
+
 
     return InlineKeyboardMarkup(
         keyboard
@@ -99,7 +101,7 @@ def load_content(file_name):
 
 
 # =========================
-# معلومات الحساب
+# الحساب
 # =========================
 
 def account_info(user_id):
@@ -110,7 +112,6 @@ def account_info(user_id):
     if not user:
 
         return "User not found."
-
 
 
     plan = "Free"
@@ -139,7 +140,9 @@ def account_info(user_id):
 
         f"Plan: {plan}\n"
 
-        f"Join date: {user[5]}"
+        f"Join date: {user[5]}\n\n"
+
+        "To add or update your phone number use the button below."
 
     )
 
@@ -157,7 +160,6 @@ async def menu_callback(update, context):
 
 
     section = query.data
-
 
 
     files = {
@@ -185,7 +187,6 @@ async def menu_callback(update, context):
         )
 
 
-
     elif section == "account":
 
         text = account_info(
@@ -193,17 +194,9 @@ async def menu_callback(update, context):
         )
 
 
-
     elif section == "mcq":
 
-        text = (
-
-            "📝 MCQ Practice\n\n"
-
-            "Coming soon."
-
-        )
-
+        text = "📝 MCQ Practice\n\nComing soon."
 
 
     else:
