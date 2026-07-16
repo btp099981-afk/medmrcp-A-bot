@@ -4,13 +4,14 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
 from core.database import get_user
+from config import ADMIN_ID
 
 
 # =========================
 # القائمة الرئيسية
 # =========================
 
-def get_main_menu():
+def get_main_menu(user_id=None):
 
     keyboard = [
 
@@ -58,17 +59,34 @@ def get_main_menu():
             InlineKeyboardButton(
                 "👤 My Account",
                 callback_data="account"
-            ),
+            )
         ],
 
         [
             InlineKeyboardButton(
                 "💎 Premium",
                 callback_data="premium"
-            ),
+            )
         ]
 
     ]
+
+
+    # يظهر للمدير فقط
+
+    if user_id == ADMIN_ID:
+
+        keyboard.append(
+
+            [
+                InlineKeyboardButton(
+                    "⚙️ Admin Panel",
+                    callback_data="admin"
+                )
+            ]
+
+        )
+
 
     return InlineKeyboardMarkup(keyboard)
 
@@ -116,10 +134,16 @@ def get_setting(key):
 
     cursor = conn.cursor()
 
+
     cursor.execute(
-        "SELECT value FROM settings WHERE key=?",
+        """
+        SELECT value
+        FROM settings
+        WHERE key=?
+        """,
         (key,)
     )
+
 
     result = cursor.fetchone()
 
@@ -127,7 +151,9 @@ def get_setting(key):
 
 
     if result:
+
         return result[0]
+
 
     return "Not set"
 
@@ -147,19 +173,15 @@ def account_info(user_id):
         return "User not found."
 
 
-    plan = user[3].capitalize()
-    join_date = user[4]
-
-
     return (
 
         "👤 My Account\n\n"
 
         f"Name: {user[2]}\n"
 
-        f"Plan: {plan}\n"
+        f"Plan: {user[3].capitalize()}\n"
 
-        f"Join date: {join_date}"
+        f"Join date: {user[4]}"
 
     )
 
@@ -180,7 +202,7 @@ def premium_info():
 
         "💎 DrBillAcademy Premium\n\n"
 
-        "Get access to:\n"
+        "Features:\n"
 
         "✅ Clinical Cases\n"
 
@@ -188,9 +210,9 @@ def premium_info():
 
         "✅ MCQ Practice\n\n"
 
-        "Subscription payment:\n\n"
+        "Payment Account:\n"
 
-        f"Account Number:\n{account}\n\n"
+        f"{account}\n\n"
 
         "After payment send your proof."
 
@@ -251,6 +273,14 @@ async def menu_callback(update, context):
         )
 
 
+    elif section == "admin":
+
+        text = (
+            "⚙️ Admin Panel\n\n"
+            "Access your administration tools."
+        )
+
+
     else:
 
         text = "Choose a section."
@@ -261,7 +291,9 @@ async def menu_callback(update, context):
 
         text=text,
 
-        reply_markup=get_main_menu()
+        reply_markup=get_main_menu(
+            query.from_user.id
+        )
 
     )
 
