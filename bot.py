@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 
 from telegram import Update
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -10,32 +12,42 @@ from telegram.ext import (
     filters
 )
 
+
 from core.database import (
     create_database,
     add_user,
     get_user
 )
 
+
 from handlers.menu import (
     get_main_menu,
     get_menu_handler
 )
 
+
 from handlers.chat import (
     handle_message
 )
 
+
 from handlers.admin import (
     get_admin_handler,
-    get_payment_account_handler
+    get_payment_account_handler,
+    save_payment_account
 )
 
 
+
+# =========================
 # تحميل المتغيرات
+# =========================
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
+BOT_TOKEN = os.getenv(
+    "BOT_TOKEN"
+)
 
 
 
@@ -50,8 +62,6 @@ async def start(
 
     user = update.effective_user
 
-
-    # تسجيل المستخدم
 
     add_user(
         user.id,
@@ -132,15 +142,7 @@ def main():
 
 
 
-    # menu
-
-    app.add_handler(
-        get_menu_handler()
-    )
-
-
-
-    # admin panel
+    # Admin buttons
 
     app.add_handler(
         get_admin_handler()
@@ -153,13 +155,39 @@ def main():
 
 
 
-    # messages
+    # استقبال رقم الحساب من المدير
 
     app.add_handler(
 
         MessageHandler(
 
-            filters.TEXT & ~filters.COMMAND,
+            filters.TEXT
+            & ~filters.COMMAND,
+
+            save_payment_account
+
+        )
+
+    )
+
+
+
+    # Medical menu
+
+    app.add_handler(
+        get_menu_handler()
+    )
+
+
+
+    # باقي الرسائل
+
+    app.add_handler(
+
+        MessageHandler(
+
+            filters.TEXT
+            & ~filters.COMMAND,
 
             handle_message
 
