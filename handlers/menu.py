@@ -24,7 +24,7 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "🫁 Respiratory",
                 callback_data="respiratory"
-            ),
+            )
         ],
 
         [
@@ -35,14 +35,14 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "🍽 Gastro",
                 callback_data="gastro"
-            ),
+            )
         ],
 
         [
             InlineKeyboardButton(
                 "🩺 Renal System",
                 callback_data="renal"
-            ),
+            )
         ],
 
         [
@@ -53,7 +53,7 @@ def get_main_menu(user_id=None):
             InlineKeyboardButton(
                 "📝 MCQ Practice",
                 callback_data="mcq"
-            ),
+            )
         ],
 
         [
@@ -94,7 +94,7 @@ def get_main_menu(user_id=None):
 
 
 # =========================
-# قراءة المحتوى
+# تحميل المحتوى
 # =========================
 
 def load_content(file_name):
@@ -213,7 +213,6 @@ async def menu_callback(update, context):
     section = query.data
 
 
-
     files = {
 
         "history": "history_taking.txt",
@@ -226,7 +225,7 @@ async def menu_callback(update, context):
 
         "gastro": "gastro.txt",
 
-        "renal": "renal.txt",
+        "renal": "renal.txt"
 
     }
 
@@ -239,4 +238,51 @@ async def menu_callback(update, context):
         )
 
 
-   
+    elif section == "account":
+
+        text = account_info(
+            query.from_user.id
+        )
+
+
+    elif section == "premium":
+
+        text = premium_info()
+
+
+
+    elif section == "mcq":
+
+        text = (
+            "📝 MCQ Practice\n\n"
+            "Coming soon."
+        )
+
+
+    else:
+
+        text = "Choose a section."
+
+
+
+    await query.edit_message_text(
+
+        text=text,
+
+        reply_markup=get_main_menu(
+            query.from_user.id
+        )
+
+    )
+
+
+
+# =========================
+# ربط القائمة مع البوت
+# =========================
+
+def get_menu_handler():
+
+    return CallbackQueryHandler(
+        menu_callback
+    )
