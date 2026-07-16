@@ -379,6 +379,168 @@ def add_discount(
     cursor = conn.cursor()
 
 
+    # =========================
+# الخصومات
+# =========================
+
+def add_discount(
+    user_id,
+    percent
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
     cursor.execute(
         """
+        INSERT OR REPLACE INTO discounts
+
+        (
+        user_id,
+        discount_percent
+        )
+
+        VALUES (?,?)
+
+        """,
+        (
+            user_id,
+            percent
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
+
+
+
+def get_discount(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT discount_percent
+
+        FROM discounts
+
+        WHERE user_id=?
+
+        """,
+        (user_id,)
+    )
+
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+
+    if result:
+
+        return result[0]
+
+
+    return 0
+
+
+
+# =========================
+# الدفع
+# =========================
+
+def create_payment_request(
+    user_id,
+    proof
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT INTO payment_requests
+
+        (
+        user_id,
+        proof,
+        status,
+        date
+        )
+
+        VALUES (?,?,?,?)
+
+        """,
+        (
+            user_id,
+            proof,
+            "pending",
+            datetime.now().strftime("%Y-%m-%d")
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
+
+
+
+def get_pending_payments():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT *
+
+        FROM payment_requests
+
+        WHERE status='pending'
+
+        """
+    )
+
+
+    data = cursor.fetchall()
+
+    conn.close()
+
+    return data
+
+
+
+def update_payment_status(
+    request_id,
+    status
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        UPDATE payment_requests
+
+        SET status=?
+
+        WHERE id=?
+
+        """,
+        (
+            status,
+            request_id
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
        
