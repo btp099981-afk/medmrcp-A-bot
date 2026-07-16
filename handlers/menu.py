@@ -1,10 +1,12 @@
 import os
+import sqlite3
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
 from core.database import get_user
 from config import ADMIN_ID
+
 
 
 # =========================
@@ -72,23 +74,21 @@ def get_main_menu(user_id=None):
     ]
 
 
-    # يظهر للمدير فقط
-
     if user_id == ADMIN_ID:
 
         keyboard.append(
-
             [
                 InlineKeyboardButton(
                     "⚙️ Admin Panel",
                     callback_data="admin"
                 )
             ]
-
         )
 
 
-    return InlineKeyboardMarkup(keyboard)
+    return InlineKeyboardMarkup(
+        keyboard
+    )
 
 
 
@@ -125,8 +125,6 @@ def load_content(file_name):
 # =========================
 
 def get_setting(key):
-
-    import sqlite3
 
     conn = sqlite3.connect(
         "medmrcp.db"
@@ -165,12 +163,15 @@ def get_setting(key):
 
 def account_info(user_id):
 
-    user = get_user(user_id)
+    user = get_user(
+        user_id
+    )
 
 
     if not user:
 
         return "User not found."
+
 
 
     return (
@@ -224,7 +225,10 @@ def premium_info():
 # التعامل مع الأزرار
 # =========================
 
-async def menu_callback(update, context):
+async def menu_callback(
+    update,
+    context
+):
 
     query = update.callback_query
 
@@ -232,6 +236,7 @@ async def menu_callback(update, context):
 
 
     section = query.data
+
 
 
     files = {
@@ -246,11 +251,13 @@ async def menu_callback(update, context):
     }
 
 
+
     if section in files:
 
         text = load_content(
             files[section]
         )
+
 
 
     elif section == "account":
@@ -260,9 +267,11 @@ async def menu_callback(update, context):
         )
 
 
+
     elif section == "premium":
 
         text = premium_info()
+
 
 
     elif section == "mcq":
@@ -273,17 +282,10 @@ async def menu_callback(update, context):
         )
 
 
-    elif section == "admin":
-
-        text = (
-            "⚙️ Admin Panel\n\n"
-            "Access your administration tools."
-        )
-
 
     else:
 
-        text = "Choose a section."
+        return
 
 
 
@@ -303,4 +305,4 @@ def get_menu_handler():
 
     return CallbackQueryHandler(
         menu_callback
-    )
+        )
