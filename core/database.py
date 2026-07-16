@@ -25,7 +25,6 @@ def get_connection():
 def create_database():
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
@@ -71,18 +70,21 @@ def create_database():
 
 
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS payments (
+    CREATE TABLE IF NOT EXISTS payment_requests (
 
         id INTEGER PRIMARY KEY AUTOINCREMENT,
 
         user_id INTEGER,
 
-        status TEXT,
+        proof TEXT,
+
+        status TEXT DEFAULT 'pending',
 
         date TEXT
 
     )
     """)
+
 
 
     cursor.execute(
@@ -124,7 +126,7 @@ def create_database():
 
 
 # =========================
-# إضافة مستخدم
+# المستخدمون
 # =========================
 
 def add_user(
@@ -134,14 +136,12 @@ def add_user(
 ):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
         INSERT OR IGNORE INTO users
-
         (
         user_id,
         username,
@@ -166,28 +166,19 @@ def add_user(
 
 
 
-# =========================
-# جلب مستخدم
-# =========================
-
 def get_user(user_id):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
         SELECT *
-
         FROM users
-
         WHERE user_id=?
         """,
-        (
-            user_id,
-        )
+        (user_id,)
     )
 
 
@@ -195,47 +186,34 @@ def get_user(user_id):
 
     conn.close()
 
-
     return user
 
 
 
-# =========================
-# البحث بالهاتف
-# =========================
-
-def get_user_by_phone(phone):
+def get_all_users():
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
         SELECT *
-
         FROM users
-
-        WHERE phone_number=?
-        """,
-        (
-            phone,
-        )
+        """
     )
 
 
-    user = cursor.fetchone()
+    users = cursor.fetchall()
 
     conn.close()
 
-
-    return user
+    return users
 
 
 
 # =========================
-# تحديث الهاتف
+# الهاتف
 # =========================
 
 def update_phone(
@@ -244,7 +222,6 @@ def update_phone(
 ):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
@@ -268,8 +245,32 @@ def update_phone(
 
 
 
+def get_user_by_phone(phone):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE phone_number=?
+        """,
+        (phone,)
+    )
+
+
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user
+
+
+
 # =========================
-# تحديث الخطة
+# الخطط
 # =========================
 
 def update_plan(
@@ -278,7 +279,6 @@ def update_plan(
 ):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
@@ -303,78 +303,6 @@ def update_plan(
 
 
 # =========================
-# الخصومات
-# =========================
-
-def add_discount(
-    user_id,
-    percent
-):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        INSERT OR REPLACE INTO discounts
-
-        (
-        user_id,
-        discount_percent
-        )
-
-        VALUES (?,?)
-        """,
-        (
-            user_id,
-            percent
-        )
-    )
-
-
-    conn.commit()
-    conn.close()
-
-
-
-def get_discount(user_id):
-
-    conn = get_connection()
-
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        SELECT discount_percent
-
-        FROM discounts
-
-        WHERE user_id=?
-        """,
-        (
-            user_id,
-        )
-    )
-
-
-    result = cursor.fetchone()
-
-    conn.close()
-
-
-    if result:
-
-        return result[0]
-
-
-    return 0
-
-
-
-# =========================
 # الإعدادات
 # =========================
 
@@ -384,7 +312,6 @@ def update_setting(
 ):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
@@ -395,6 +322,7 @@ def update_setting(
         (key,value)
 
         VALUES (?,?)
+
         """,
         (
             key,
@@ -411,21 +339,16 @@ def update_setting(
 def get_setting(key):
 
     conn = get_connection()
-
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
         SELECT value
-
         FROM settings
-
         WHERE key=?
         """,
-        (
-            key,
-        )
+        (key,)
     )
 
 
@@ -440,137 +363,22 @@ def get_setting(key):
 
 
     return None
+
+
+
 # =========================
-# إنشاء طلب دفع
+# الخصومات
 # =========================
 
-def create_payment_request(
+def add_discount(
     user_id,
-    proof
+    percent
 ):
 
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
-
+    conn = get_connection()
     cursor = conn.cursor()
 
 
     cursor.execute(
         """
-        INSERT INTO payment_requests
-        (
-        user_id,
-        proof,
-        date
-        )
-
-        VALUES (?, ?, ?)
-        """,
-
-        (
-            user_id,
-            proof,
-            datetime.now().strftime(
-                "%Y-%m-%d"
-            )
-        )
-
-    )
-
-
-    conn.commit()
-
-    conn.close()
-# =========================
-# جلب طلبات الدفع المعلقة
-# =========================
-
-def get_pending_payments():
-
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
-
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        SELECT *
-
-        FROM payment_requests
-
-        WHERE status='pending'
-        """
-    )
-
-
-    data = cursor.fetchall()
-
-
-    conn.close()
-
-
-    return data
-# =========================
-# تحديث حالة الدفع
-# =========================
-
-def update_payment_status(
-    request_id,
-    status
-):
-
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
-
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        UPDATE payment_requests
-
-        SET status=?
-
-        WHERE id=?
-
-        """,
-
-        (
-            status,
-            request_id
-        )
-
-    )
-
-
-    conn.commit()
-
-    conn.close()
-# =========================
-# جلب كل المستخدمين (مستقبلاً للإدارة)
-# =========================
-
-def get_all_users():
-
-    conn = sqlite3.connect(
-        DATABASE_NAME
-    )
-
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM users
-        """
-    )
-
-    users = cursor.fetchall()
-
-    conn.close()
-
-    return users
+       
