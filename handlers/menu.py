@@ -66,6 +66,8 @@ def get_main_menu(user_id=None):
     ]
 
 
+    # يظهر للمدير فقط
+
     if user_id == ADMIN_ID:
 
         keyboard.append(
@@ -115,7 +117,7 @@ def load_content(file_name):
 
 
 # =========================
-# الحساب
+# معلومات الحساب
 # =========================
 
 def account_info(user_id):
@@ -130,12 +132,22 @@ def account_info(user_id):
         return "User not found."
 
 
+
     plan = "Free"
 
 
-    if len(user) > 3 and user[3]:
+    if user[4]:
 
-        plan = user[3].capitalize()
+        plan = user[4].capitalize()
+
+
+
+    phone = "Not added"
+
+
+    if user[3]:
+
+        phone = user[3]
 
 
 
@@ -145,7 +157,11 @@ def account_info(user_id):
 
         f"Name: {user[2]}\n"
 
-        f"Plan: {plan}"
+        f"Phone: {phone}\n"
+
+        f"Plan: {plan}\n"
+
+        f"Join date: {user[5]}"
 
     )
 
@@ -201,4 +217,35 @@ async def menu_callback(update, context):
     elif section == "mcq":
 
         text = (
-            "📝
+            "📝 MCQ Practice\n\n"
+            "Coming soon."
+        )
+
+
+    else:
+
+        text = "Choose a section."
+
+
+
+    await query.edit_message_text(
+
+        text=text,
+
+        reply_markup=get_main_menu(
+            query.from_user.id
+        )
+
+    )
+
+
+
+# =========================
+# ربط القائمة
+# =========================
+
+def get_menu_handler():
+
+    return CallbackQueryHandler(
+        menu_callback
+    )
