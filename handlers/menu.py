@@ -58,7 +58,14 @@ def get_main_menu():
             InlineKeyboardButton(
                 "👤 My Account",
                 callback_data="account"
-            )
+            ),
+        ],
+
+        [
+            InlineKeyboardButton(
+                "💎 Premium",
+                callback_data="premium"
+            ),
         ]
 
     ]
@@ -96,7 +103,38 @@ def load_content(file_name):
 
 
 # =========================
-# زر الحساب
+# قراءة الإعدادات
+# =========================
+
+def get_setting(key):
+
+    import sqlite3
+
+    conn = sqlite3.connect(
+        "medmrcp.db"
+    )
+
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT value FROM settings WHERE key=?",
+        (key,)
+    )
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+
+    if result:
+        return result[0]
+
+    return "Not set"
+
+
+
+# =========================
+# الحساب
 # =========================
 
 def account_info(user_id):
@@ -122,6 +160,39 @@ def account_info(user_id):
         f"Plan: {plan}\n"
 
         f"Join date: {join_date}"
+
+    )
+
+
+
+# =========================
+# Premium
+# =========================
+
+def premium_info():
+
+    account = get_setting(
+        "payment_account"
+    )
+
+
+    return (
+
+        "💎 DrBillAcademy Premium\n\n"
+
+        "Get access to:\n"
+
+        "✅ Clinical Cases\n"
+
+        "✅ Advanced Medical Content\n"
+
+        "✅ MCQ Practice\n\n"
+
+        "Subscription payment:\n\n"
+
+        f"Account Number:\n{account}\n\n"
+
+        "After payment send your proof."
 
     )
 
@@ -167,6 +238,11 @@ async def menu_callback(update, context):
         )
 
 
+    elif section == "premium":
+
+        text = premium_info()
+
+
     elif section == "mcq":
 
         text = (
@@ -195,4 +271,4 @@ def get_menu_handler():
 
     return CallbackQueryHandler(
         menu_callback
-)
+    )
