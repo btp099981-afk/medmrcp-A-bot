@@ -80,7 +80,12 @@ async def start(
 
     if user_data:
 
-        plan = user_data[3].capitalize()
+        # بعد إضافة phone_number
+        # plan أصبح العمود رقم 4
+
+        if user_data[4]:
+
+            plan = user_data[4].capitalize()
 
 
 
@@ -96,11 +101,10 @@ async def start(
 
         "اختر القسم الذي تريد دراسته:",
 
-        reply_markup=get_main_menu(
-            user.id
-        )
+        reply_markup=get_main_menu()
 
     )
+
 
 
 
@@ -131,8 +135,6 @@ def main():
 
 
 
-    # start
-
     app.add_handler(
         CommandHandler(
             "start",
@@ -141,8 +143,6 @@ def main():
     )
 
 
-
-    # Admin buttons
 
     app.add_handler(
         get_admin_handler()
@@ -154,8 +154,6 @@ def main():
     )
 
 
-
-    # استقبال رقم الحساب من المدير
 
     app.add_handler(
 
@@ -172,15 +170,11 @@ def main():
 
 
 
-    # Medical menu
-
     app.add_handler(
         get_menu_handler()
     )
 
 
-
-    # باقي الرسائل
 
     app.add_handler(
 
