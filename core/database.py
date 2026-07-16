@@ -482,3 +482,34 @@ def create_payment_request(
     conn.commit()
 
     conn.close()
+# =========================
+# جلب طلبات الدفع المعلقة
+# =========================
+
+def get_pending_payments():
+
+    conn = sqlite3.connect(
+        DATABASE_NAME
+    )
+
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT *
+
+        FROM payment_requests
+
+        WHERE status='pending'
+        """
+    )
+
+
+    data = cursor.fetchall()
+
+
+    conn.close()
+
+
+    return data
