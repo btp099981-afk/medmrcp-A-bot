@@ -1,3 +1,7 @@
+# core/database.py
+# MedMRCP Beta v0.1
+# Stable Database File - Part 1/3
+
 import sqlite3
 from datetime import datetime
 
@@ -7,7 +11,7 @@ DATABASE_NAME = "medmrcp.db"
 
 
 # =========================
-# Database Connection
+# Connection
 # =========================
 
 def get_connection():
@@ -47,6 +51,7 @@ def create_database():
     """)
 
 
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS settings (
 
@@ -58,6 +63,7 @@ def create_database():
     """)
 
 
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS discounts (
 
@@ -67,6 +73,7 @@ def create_database():
 
     )
     """)
+
 
 
     cursor.execute("""
@@ -86,6 +93,7 @@ def create_database():
     """)
 
 
+
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS user_agreements (
 
@@ -100,31 +108,40 @@ def create_database():
 
 
 
-    cursor.execute("""
-    INSERT OR IGNORE INTO settings
-    (key,value)
+    cursor.execute(
+        """
+        INSERT OR IGNORE INTO settings
 
-    VALUES
-    ('premium_price','0')
-    """)
+        (key,value)
 
-
-    cursor.execute("""
-    INSERT OR IGNORE INTO settings
-    (key,value)
-
-    VALUES
-    ('payment_account','Not set')
-    """)
+        VALUES
+        ('premium_price','0')
+        """
+    )
 
 
-    cursor.execute("""
-    INSERT OR IGNORE INTO settings
-    (key,value)
+    cursor.execute(
+        """
+        INSERT OR IGNORE INTO settings
 
-    VALUES
-    ('whop_link','Not set')
-    """)
+        (key,value)
+
+        VALUES
+        ('payment_account','Not set')
+        """
+    )
+
+
+    cursor.execute(
+        """
+        INSERT OR IGNORE INTO settings
+
+        (key,value)
+
+        VALUES
+        ('whop_link','Not set')
+        """
+    )
 
 
     conn.commit()
@@ -212,7 +229,6 @@ def get_all_users():
         SELECT *
 
         FROM users
-
         """
     )
 
@@ -222,7 +238,11 @@ def get_all_users():
     conn.close()
 
     return users
-    # =========================
+    # core/database.py
+# Part 2/3
+
+
+# =========================
 # Phone
 # =========================
 
@@ -250,8 +270,273 @@ def update_phone(
         )
     )
 
+
+    conn.commit()
+    conn.close()
+
+
+
+def get_user_by_phone(phone):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT *
+
+        FROM users
+
+        WHERE phone_number=?
+
+        """,
+        (phone,)
+    )
+
+
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user
+
+
+
 # =========================
-# Payment Requests
+# Plans
+# =========================
+
+def update_plan(
+    user_id,
+    plan
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        UPDATE users
+
+        SET plan=?
+
+        WHERE user_id=?
+
+        """,
+        (
+            plan,
+            user_id
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
+
+
+
+# =========================
+# Settings
+# =========================
+
+def update_setting(
+    key,
+    value
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO settings
+
+        (
+        key,
+        value
+        )
+
+        VALUES (?,?)
+
+        """,
+        (
+            key,
+            value
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
+
+
+
+def get_setting(key):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT value
+
+        FROM settings
+
+        WHERE key=?
+
+        """,
+        (key,)
+    )
+
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+
+    if result:
+
+        return result[0]
+
+
+    return None
+
+
+
+# =========================
+# Discounts
+# =========================
+
+def add_discount(
+    user_id,
+    percent
+):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO discounts
+
+        (
+        user_id,
+        discount_percent
+        )
+
+        VALUES (?,?)
+
+        """,
+        (
+            user_id,
+            percent
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
+
+
+
+def get_discount(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT discount_percent
+
+        FROM discounts
+
+        WHERE user_id=?
+
+        """,
+        (user_id,)
+    )
+
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+
+    if result:
+
+        return result[0]
+
+
+    return 0
+
+
+
+# =========================
+# Disclaimer
+# =========================
+
+def has_accepted_disclaimer(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT disclaimer_accepted
+
+        FROM user_agreements
+
+        WHERE user_id=?
+
+        """,
+        (user_id,)
+    )
+
+
+    result = cursor.fetchone()
+
+    conn.close()
+
+
+    if result and result[0] == 1:
+
+        return True
+
+
+    return False
+
+
+
+def accept_disclaimer(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        INSERT OR REPLACE INTO user_agreements
+
+        (
+        user_id,
+        disclaimer_accepted,
+        date
+        )
+
+        VALUES
+    # core/database.py
+# Part 3/3
+
+
+# =========================
+# Payments
 # =========================
 
 def create_payment_request(
@@ -309,11 +594,11 @@ def get_pending_payments():
     )
 
 
-    requests = cursor.fetchall()
+    data = cursor.fetchall()
 
     conn.close()
 
-    return requests
+    return data
 
 
 
@@ -348,7 +633,7 @@ def update_payment_status(
 
 
 # =========================
-# Admin Payment Actions
+# Subscription Actions
 # =========================
 
 def approve_payment(user_id):
@@ -370,7 +655,7 @@ def reject_payment(request_id):
 
 
 # =========================
-# Database Test
+# Test
 # =========================
 
 def test_database():
@@ -392,8 +677,6 @@ def test_database():
 
     tables = cursor.fetchall()
 
-
     conn.close()
 
     return tables
-   
