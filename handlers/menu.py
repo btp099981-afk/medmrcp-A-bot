@@ -1,5 +1,3 @@
-import os
-
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
@@ -95,9 +93,7 @@ def get_main_menu(user_id=None):
         )
 
 
-    return InlineKeyboardMarkup(
-        keyboard
-    )
+    return InlineKeyboardMarkup(keyboard)
 
 
 
@@ -107,9 +103,7 @@ def get_main_menu(user_id=None):
 
 def account_info(user_id):
 
-    user = get_user(
-        user_id
-    )
+    user = get_user(user_id)
 
 
     if not user:
@@ -170,9 +164,7 @@ async def menu_callback(update, context):
             f"📚 {section.capitalize()}\n\n"
             "Choose content type:",
 
-            reply_markup=get_content_menu(
-                section
-            )
+            reply_markup=get_content_menu(section)
 
         )
 
@@ -258,6 +250,23 @@ async def menu_callback(update, context):
 
 
 
+    elif section == "back_menu":
+
+        await query.edit_message_text(
+
+            "🩺 MedMRCP AI\n\n"
+            "Choose a section:",
+
+            reply_markup=get_main_menu(
+                query.from_user.id
+            )
+
+        )
+
+        return
+
+
+
     else:
 
         await query.edit_message_text(
@@ -278,6 +287,6 @@ def get_menu_handler():
 
         menu_callback,
 
-        pattern="^(cardiology|respiratory|neurology|gastro|renal|history_menu|exam_menu|mcq_menu|account|premium)$"
+        pattern="^(cardiology|respiratory|neurology|gastro|renal|history_menu|exam_menu|mcq_menu|account|premium|back_menu)$"
 
-    )
+        )
