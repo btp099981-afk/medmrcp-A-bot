@@ -530,7 +530,39 @@ def accept_disclaimer(user_id):
         date
         )
 
-        VALUES
+            cursor.execute(
+        """
+        INSERT OR REPLACE INTO user_agreements
+
+        (
+        user_id,
+        disclaimer_accepted,
+        date
+        )
+
+        VALUES (?,?,?)
+
+        """,
+        (
+            user_id,
+            1,
+            datetime.now().strftime("%Y-%m-%d")
+        )
+    )
+
+
+    conn.commit()
+    conn.close()
+
+
+
+# core/database.py
+# Part 3/3
+
+
+# =========================
+# Payments
+# =========================
     # core/database.py
 # Part 3/3
 
