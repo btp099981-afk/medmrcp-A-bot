@@ -1,6 +1,3 @@
-# core/database.py
-# Part 1/3
-
 import sqlite3
 from datetime import datetime
 
@@ -10,7 +7,7 @@ DATABASE_NAME = "medmrcp.db"
 
 
 # =========================
-# الاتصال بقاعدة البيانات
+# Database Connection
 # =========================
 
 def get_connection():
@@ -22,7 +19,7 @@ def get_connection():
 
 
 # =========================
-# إنشاء قاعدة البيانات
+# Create Database
 # =========================
 
 def create_database():
@@ -89,8 +86,6 @@ def create_database():
     """)
 
 
-    # موافقة المستخدم على Disclaimer
-
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS user_agreements (
 
@@ -105,37 +100,31 @@ def create_database():
 
 
 
-    cursor.execute(
-        """
-        INSERT OR IGNORE INTO settings
-        (key,value)
+    cursor.execute("""
+    INSERT OR IGNORE INTO settings
+    (key,value)
 
-        VALUES
-        ('premium_price','0')
-        """
-    )
+    VALUES
+    ('premium_price','0')
+    """)
 
 
-    cursor.execute(
-        """
-        INSERT OR IGNORE INTO settings
-        (key,value)
+    cursor.execute("""
+    INSERT OR IGNORE INTO settings
+    (key,value)
 
-        VALUES
-        ('payment_account','Not set')
-        """
-    )
+    VALUES
+    ('payment_account','Not set')
+    """)
 
 
-    cursor.execute(
-        """
-        INSERT OR IGNORE INTO settings
-        (key,value)
+    cursor.execute("""
+    INSERT OR IGNORE INTO settings
+    (key,value)
 
-        VALUES
-        ('whop_link','Not set')
-        """
-    )
+    VALUES
+    ('whop_link','Not set')
+    """)
 
 
     conn.commit()
@@ -144,7 +133,7 @@ def create_database():
 
 
 # =========================
-# المستخدمون
+# Users
 # =========================
 
 def add_user(
@@ -177,12 +166,64 @@ def add_user(
             first_name,
             datetime.now().strftime("%Y-%m-%d")
         )
-    )# core/database.py
-# Part 2/3
+    )
 
 
-# =========================
-# الهاتف
+    conn.commit()
+    conn.close()
+
+
+
+def get_user(user_id):
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT *
+
+        FROM users
+
+        WHERE user_id=?
+
+        """,
+        (user_id,)
+    )
+
+
+    user = cursor.fetchone()
+
+    conn.close()
+
+    return user
+
+
+
+def get_all_users():
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    cursor.execute(
+        """
+        SELECT *
+
+        FROM users
+
+        """
+    )
+
+
+    users = cursor.fetchall()
+
+    conn.close()
+
+    return users
+    # =========================
+# Phone
 # =========================
 
 def update_phone(
@@ -209,248 +250,8 @@ def update_phone(
         )
     )
 
-
-    conn.commit()
-    conn.close()
-
-
-
-def get_user_by_phone(phone):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        SELECT *
-
-        FROM users
-
-        WHERE phone_number=?
-
-        """,
-        (phone,)
-    )
-
-
-    user = cursor.fetchone()
-
-    conn.close()
-
-    return user
-
-
-
 # =========================
-# الخطط
-# =========================
-
-def update_plan(
-    user_id,
-    plan
-):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        UPDATE users
-
-        SET plan=?
-
-        WHERE user_id=?
-
-        """,
-        (
-            plan,
-            user_id
-        )
-    )
-
-
-    conn.commit()
-    conn.close()
-
-
-
-# =========================
-# الإعدادات
-# =========================
-
-def update_setting(
-    key,
-    value
-):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        INSERT OR REPLACE INTO settings
-
-        (
-        key,
-        value
-        )
-
-        VALUES (?,?)
-
-        """,
-        (
-            key,
-            value
-        )
-    )
-
-
-    conn.commit()
-    conn.close()
-
-
-
-def get_setting(key):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        SELECT value
-
-        FROM settings
-
-        WHERE key=?
-
-        """,
-        (key,)
-    )
-
-
-    result = cursor.fetchone()
-
-    conn.close()
-
-
-    if result:
-
-        return result[0]
-
-
-    return None
-
-
-
-# =========================
-# الخصومات
-# =========================
-
-def add_discount(
-    user_id,
-    percent
-):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        INSERT OR REPLACE INTO discounts
-
-        (
-        user_id,
-        discount_percent
-        )
-
-        VALUES (?,?)
-
-        """,
-        (
-            user_id,
-            percent
-        )
-    )
-
-
-    conn.commit()
-    conn.close()
-
-
-
-def get_discount(user_id):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        SELECT discount_percent
-
-        FROM discounts
-
-        WHERE user_id=?
-
-        """,
-        (user_id,)
-    )
-
-
-    result = cursor.fetchone()
-
-    conn.close()
-
-
-    if result:
-
-        return result[0]
-
-
-    return 0
-
-
-
-# =========================
-# Disclaimer
-# =========================
-
-def has_accepted_disclaimer(user_id):
-
-    conn = get_connection()
-    cursor = conn.cursor()
-
-
-    cursor.execute(
-        """
-        SELECT disclaimer_accepted
-
-        FROM user_agreements
-
-        WHERE user_id=?
-
-        """,
-        (user_id,)
-    )
-
-
-    result = cursor.fetchone()
-
-    conn.close()
-
-
-    if result and result[0] == 
-    # core/database.py
-# Part 3/3
-
-
-# =========================
-# الدفع
+# Payment Requests
 # =========================
 
 def create_payment_request(
@@ -508,11 +309,11 @@ def get_pending_payments():
     )
 
 
-    data = cursor.fetchall()
+    requests = cursor.fetchall()
 
     conn.close()
 
-    return data
+    return requests
 
 
 
@@ -547,7 +348,7 @@ def update_payment_status(
 
 
 # =========================
-# قبول الاشتراك
+# Admin Payment Actions
 # =========================
 
 def approve_payment(user_id):
@@ -559,10 +360,6 @@ def approve_payment(user_id):
 
 
 
-# =========================
-# رفض الاشتراك
-# =========================
-
 def reject_payment(request_id):
 
     update_payment_status(
@@ -573,11 +370,30 @@ def reject_payment(request_id):
 
 
 # =========================
-# اختبار قاعدة البيانات
+# Database Test
 # =========================
 
 def test_database():
 
     conn = get_connection()
+    cursor = conn.cursor()
 
-    cursor = conn.cursor
+
+    cursor.execute(
+        """
+        SELECT name
+
+        FROM sqlite_master
+
+        WHERE type='table'
+        """
+    )
+
+
+    tables = cursor.fetchall()
+
+
+    conn.close()
+
+    return tables
+   
